@@ -18,9 +18,9 @@ export default function PlatinaGuide({ guide }: PlatinaGuideProps) {
   const difficulty = difficultyMap[guide.difficulty]
 
   return (
-    <div className="space-y-4 p-4 bg-secondary/50 rounded-lg">
+    <div className="space-y-4 p-4 bg-secondary/50 rounded-lg border border-border/50">
       <h3 className="text-lg font-bold flex items-center gap-2">
-        <Award className="h-5 w-5 text-primary" />
+        <Award className="h-5 w-5 trophy-platinum" />
         Guia de Platina
       </h3>
 

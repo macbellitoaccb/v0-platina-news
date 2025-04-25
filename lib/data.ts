@@ -1,86 +1,21 @@
 import type { AllPosts, News, Review } from "./types"
 import { sampleReviews, sampleNews } from "./seed-data"
-import fs from "fs"
-import path from "path"
 
-// Caminho para os arquivos de dados
-const DATA_PATH = process.env.NODE_ENV === "development" ? "data" : "/tmp/data"
-const REVIEWS_FILE = `${DATA_PATH}/reviews.json`
-const NEWS_FILE = `${DATA_PATH}/news.json`
+// In-memory storage for data
+let memoryReviews: Review[] = [...sampleReviews]
+let memoryNews: News[] = [...sampleNews]
 
-// Ensure data directory exists
-export function ensureDataDir() {
-  const fullDataPath = path.join(process.cwd(), DATA_PATH)
-
-  if (!fs.existsSync(fullDataPath)) {
-    fs.mkdirSync(fullDataPath, { recursive: true })
-  }
-
-  const fullReviewsPath = path.join(process.cwd(), REVIEWS_FILE)
-  if (!fs.existsSync(fullReviewsPath)) {
-    fs.writeFileSync(fullReviewsPath, JSON.stringify([]))
-  }
-
-  const fullNewsPath = path.join(process.cwd(), NEWS_FILE)
-  if (!fs.existsSync(fullNewsPath)) {
-    fs.writeFileSync(fullNewsPath, JSON.stringify([]))
-  }
-}
-
-// Seed database with sample data if empty
-export function seedDatabaseIfEmpty() {
-  ensureDataDir()
-
-  try {
-    const fullReviewsPath = path.join(process.cwd(), REVIEWS_FILE)
-    const fullNewsPath = path.join(process.cwd(), NEWS_FILE)
-
-    const reviews = JSON.parse(fs.readFileSync(fullReviewsPath, "utf8"))
-    const news = JSON.parse(fs.readFileSync(fullNewsPath, "utf8"))
-
-    // Se não houver reviews ou notícias, popula o banco com dados de exemplo
-    if (reviews.length === 0 && news.length === 0) {
-      // Adicionar reviews de exemplo
-      fs.writeFileSync(fullReviewsPath, JSON.stringify(sampleReviews, null, 2))
-
-      // Adicionar notícias de exemplo
-      fs.writeFileSync(fullNewsPath, JSON.stringify(sampleNews, null, 2))
-
-      console.log("Banco de dados populado com dados de exemplo!")
-    }
-  } catch (error) {
-    console.error("Erro ao verificar ou popular o banco de dados:", error)
-  }
-}
+// Check if we're on the server side
+const isServer = typeof window === "undefined"
 
 // Get all reviews
 export function getReviews(): Review[] {
-  ensureDataDir()
-  seedDatabaseIfEmpty() // Verifica se precisa popular o banco
-
-  try {
-    const fullPath = path.join(process.cwd(), REVIEWS_FILE)
-    const data = fs.readFileSync(fullPath, "utf8")
-    return JSON.parse(data)
-  } catch (error) {
-    console.error("Error reading reviews:", error)
-    return []
-  }
+  return [...memoryReviews]
 }
 
 // Get all news
 export function getNews(): News[] {
-  ensureDataDir()
-  seedDatabaseIfEmpty() // Verifica se precisa popular o banco
-
-  try {
-    const fullPath = path.join(process.cwd(), NEWS_FILE)
-    const data = fs.readFileSync(fullPath, "utf8")
-    return JSON.parse(data)
-  } catch (error) {
-    console.error("Error reading news:", error)
-    return []
-  }
+  return [...memoryNews]
 }
 
 // Get all posts (reviews and news) sorted by date
@@ -105,9 +40,7 @@ export function getNewsBySlug(slug: string): News | null {
 
 // Save a review
 export function saveReview(review: Review): void {
-  ensureDataDir()
   const reviews = getReviews()
-
   const existingIndex = reviews.findIndex((r) => r.id === review.id)
 
   if (existingIndex >= 0) {
@@ -116,15 +49,12 @@ export function saveReview(review: Review): void {
     reviews.push(review)
   }
 
-  const fullPath = path.join(process.cwd(), REVIEWS_FILE)
-  fs.writeFileSync(fullPath, JSON.stringify(reviews, null, 2))
+  memoryReviews = reviews
 }
 
 // Save a news
 export function saveNews(news: News): void {
-  ensureDataDir()
   const newsItems = getNews()
-
   const existingIndex = newsItems.findIndex((n) => n.id === news.id)
 
   if (existingIndex >= 0) {
@@ -133,26 +63,26 @@ export function saveNews(news: News): void {
     newsItems.push(news)
   }
 
-  const fullPath = path.join(process.cwd(), NEWS_FILE)
-  fs.writeFileSync(fullPath, JSON.stringify(newsItems, null, 2))
+  memoryNews = newsItems
 }
 
 // Delete a review
 export function deleteReview(id: string): void {
-  ensureDataDir()
   const reviews = getReviews()
-  const filteredReviews = reviews.filter((review) => review.id !== id)
-
-  const fullPath = path.join(process.cwd(), REVIEWS_FILE)
-  fs.writeFileSync(fullPath, JSON.stringify(filteredReviews, null, 2))
+  memoryReviews = reviews.filter((review) => review.id !== id)
 }
 
 // Delete a news
 export function deleteNews(id: string): void {
-  ensureDataDir()
   const newsItems = getNews()
-  const filteredNews = newsItems.filter((news) => news.id !== id)
+  memoryNews = newsItems.filter((news) => news.id !== id)
+}
 
-  const fullPath = path.join(process.cwd(), NEWS_FILE)
-  fs.writeFileSync(fullPath, JSON.stringify(filteredNews, null, 2))
+// These functions are kept for compatibility but don't do anything in this version
+export function ensureDataDir() {
+  // No-op in this version
+}
+
+export function seedDatabaseIfEmpty() {
+  // No-op in this version
 }

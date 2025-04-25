@@ -50,13 +50,13 @@ export default function NewsCard({ news, featured = false, variant = "default" }
     return (
       <Link href={`/noticias/${news.slug}`} className="group">
         <div className="flex items-center gap-3 py-3">
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
+          <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-md">
             <Image
               src={news.image || "/placeholder.svg?height=100&width=100"}
               alt={news.title}
               fill
               className="object-cover"
-              sizes="64px"
+              sizes="96px"
             />
           </div>
           <div>

@@ -37,47 +37,6 @@ export default function ReviewPage({ params }: ReviewPageProps) {
   // Determinar onde inserir as imagens adicionais
   const hasAdditionalImages = review.additionalImages && review.additionalImages.length > 0
 
-  // Função para renderizar o conteúdo com imagens intercaladas
-  const renderContentWithImages = () => {
-    if (!hasAdditionalImages) {
-      return paragraphs.map((paragraph, index) => (
-        <p key={index} className="mb-4">
-          {paragraph}
-        </p>
-      ))
-    }
-
-    const content = []
-    const imageCount = review.additionalImages!.length
-
-    // Calcular aproximadamente onde inserir cada imagem
-    const paragraphsPerImage = Math.max(Math.floor(paragraphs.length / (imageCount + 1)), 1)
-
-    paragraphs.forEach((paragraph, index) => {
-      content.push(
-        <p key={`p-${index}`} className="mb-4">
-          {paragraph}
-        </p>,
-      )
-
-      // Inserir imagem após alguns parágrafos
-      const imageIndex = Math.floor(index / paragraphsPerImage) - 1
-      if (imageIndex >= 0 && imageIndex < imageCount && (index + 1) % paragraphsPerImage === 0) {
-        const image = review.additionalImages![imageIndex]
-        content.push(
-          <figure key={`img-${imageIndex}`} className="my-8">
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
-              <Image src={image.url || "/placeholder.svg"} alt={image.caption} fill className="object-cover" />
-            </div>
-            <figcaption className="mt-2 text-center text-sm text-muted-foreground italic">{image.caption}</figcaption>
-          </figure>,
-        )
-      }
-    })
-
-    return content
-  }
-
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
@@ -103,32 +62,77 @@ export default function ReviewPage({ params }: ReviewPageProps) {
               <Button variant="outline" size="icon">
                 <Share2 className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
+              <div className="flex flex-col items-center gap-1 bg-secondary px-4 py-2 rounded-lg">
+                <span className="text-xs font-medium text-muted-foreground">Avaliação</span>
                 <TrophyIcon rating={review.rating} size="lg" showLabel showDescription />
               </div>
             </div>
           </div>
 
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg">
-            <Image
-              src={review.image || "/placeholder.svg?height=400&width=800"}
-              alt={review.title}
-              fill
-              className="object-cover"
-              priority
-            />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Imagem principal - reduzida */}
+            <div className="md:col-span-7">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                <Image
+                  src={review.image || "/placeholder.svg?height=400&width=800"}
+                  alt={review.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 my-4">
+                {review.genres.map((genre) => (
+                  <span key={genre} className="game-tag">
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Guia de platina e início do texto */}
+            <div className="md:col-span-5 space-y-4">
+              {review.platinaGuide && (
+                <div>
+                  <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Guia de Platina</h3>
+                  <PlatinaGuide guide={review.platinaGuide} />
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Início da Review</h3>
+                <div className="prose prose-invert max-w-none text-sm">
+                  <p>{paragraphs[0]}</p>
+                  {paragraphs.length > 1 && <p className="text-primary text-xs mt-2">Continue lendo abaixo...</p>}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 my-4">
-            {review.genres.map((genre) => (
-              <span key={genre} className="game-tag">
-                {genre}
-              </span>
+          <div className="prose prose-invert max-w-none mt-8">
+            {paragraphs.slice(1).map((paragraph, index) => (
+              <p key={index} className="mb-4">
+                {paragraph}
+              </p>
             ))}
           </div>
         </div>
 
-        <div className="prose prose-invert max-w-none">{renderContentWithImages()}</div>
+        {hasAdditionalImages && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+            {review.additionalImages!.map((image, index) => (
+              <figure key={`img-${index}`} className="my-4">
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                  <Image src={image.url || "/placeholder.svg"} alt={image.caption} fill className="object-cover" />
+                </div>
+                <figcaption className="mt-2 text-center text-sm text-muted-foreground italic">
+                  {image.caption}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
 
         {review.tags.length > 0 && (
           <div className="mt-8 pt-4 border-t border-border/50">
@@ -157,7 +161,7 @@ export default function ReviewPage({ params }: ReviewPageProps) {
             )}
 
             {/* Guia de platina */}
-            {review.platinaGuide && (
+            {!review.platinaGuide && (
               <div>
                 <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Como Platinar</h3>
                 <PlatinaGuide guide={review.platinaGuide} />
