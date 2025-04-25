@@ -1,45 +1,85 @@
 import type { AllPosts, News, Review } from "./types"
 import { sampleReviews, sampleNews } from "./seed-data"
+import fs from "fs"
+import path from "path"
 
-// Armazenamento em memória para o servidor
-const serverMemoryStore = {
-  reviews: [...sampleReviews],
-  news: [...sampleNews],
+// Caminho para os arquivos de dados
+const DATA_PATH = process.env.NODE_ENV === "development" ? "data" : "/tmp/data"
+const REVIEWS_FILE = `${DATA_PATH}/reviews.json`
+const NEWS_FILE = `${DATA_PATH}/news.json`
+
+// Ensure data directory exists
+export function ensureDataDir() {
+  const fullDataPath = path.join(process.cwd(), DATA_PATH)
+
+  if (!fs.existsSync(fullDataPath)) {
+    fs.mkdirSync(fullDataPath, { recursive: true })
+  }
+
+  const fullReviewsPath = path.join(process.cwd(), REVIEWS_FILE)
+  if (!fs.existsSync(fullReviewsPath)) {
+    fs.writeFileSync(fullReviewsPath, JSON.stringify([]))
+  }
+
+  const fullNewsPath = path.join(process.cwd(), NEWS_FILE)
+  if (!fs.existsSync(fullNewsPath)) {
+    fs.writeFileSync(fullNewsPath, JSON.stringify([]))
+  }
 }
 
-// Função para verificar se estamos no servidor
-const isServer = () => typeof window === "undefined"
+// Seed database with sample data if empty
+export function seedDatabaseIfEmpty() {
+  ensureDataDir()
 
-// Inicializar o armazenamento com dados de exemplo
-if (isServer()) {
-  // Garantir que temos dados iniciais no servidor
-  if (!serverMemoryStore.reviews.length) {
-    serverMemoryStore.reviews = [...sampleReviews]
-  }
-  if (!serverMemoryStore.news.length) {
-    serverMemoryStore.news = [...sampleNews]
+  try {
+    const fullReviewsPath = path.join(process.cwd(), REVIEWS_FILE)
+    const fullNewsPath = path.join(process.cwd(), NEWS_FILE)
+
+    const reviews = JSON.parse(fs.readFileSync(fullReviewsPath, "utf8"))
+    const news = JSON.parse(fs.readFileSync(fullNewsPath, "utf8"))
+
+    // Se não houver reviews ou notícias, popula o banco com dados de exemplo
+    if (reviews.length === 0 && news.length === 0) {
+      // Adicionar reviews de exemplo
+      fs.writeFileSync(fullReviewsPath, JSON.stringify(sampleReviews, null, 2))
+
+      // Adicionar notícias de exemplo
+      fs.writeFileSync(fullNewsPath, JSON.stringify(sampleNews, null, 2))
+
+      console.log("Banco de dados populado com dados de exemplo!")
+    }
+  } catch (error) {
+    console.error("Erro ao verificar ou popular o banco de dados:", error)
   }
 }
 
 // Get all reviews
 export function getReviews(): Review[] {
-  if (isServer()) {
-    // No servidor, retorna do armazenamento em memória
-    return [...serverMemoryStore.reviews]
-  } else {
-    // No cliente, retorna dados de exemplo
-    return [...sampleReviews]
+  ensureDataDir()
+  seedDatabaseIfEmpty() // Verifica se precisa popular o banco
+
+  try {
+    const fullPath = path.join(process.cwd(), REVIEWS_FILE)
+    const data = fs.readFileSync(fullPath, "utf8")
+    return JSON.parse(data)
+  } catch (error) {
+    console.error("Error reading reviews:", error)
+    return []
   }
 }
 
 // Get all news
 export function getNews(): News[] {
-  if (isServer()) {
-    // No servidor, retorna do armazenamento em memória
-    return [...serverMemoryStore.news]
-  } else {
-    // No cliente, retorna dados de exemplo
-    return [...sampleNews]
+  ensureDataDir()
+  seedDatabaseIfEmpty() // Verifica se precisa popular o banco
+
+  try {
+    const fullPath = path.join(process.cwd(), NEWS_FILE)
+    const data = fs.readFileSync(fullPath, "utf8")
+    return JSON.parse(data)
+  } catch (error) {
+    console.error("Error reading news:", error)
+    return []
   }
 }
 
@@ -65,9 +105,9 @@ export function getNewsBySlug(slug: string): News | null {
 
 // Save a review
 export function saveReview(review: Review): void {
-  if (!isServer()) return
-
+  ensureDataDir()
   const reviews = getReviews()
+
   const existingIndex = reviews.findIndex((r) => r.id === review.id)
 
   if (existingIndex >= 0) {
@@ -76,15 +116,15 @@ export function saveReview(review: Review): void {
     reviews.push(review)
   }
 
-  // Atualizar o armazenamento em memória
-  serverMemoryStore.reviews = reviews
+  const fullPath = path.join(process.cwd(), REVIEWS_FILE)
+  fs.writeFileSync(fullPath, JSON.stringify(reviews, null, 2))
 }
 
 // Save a news
 export function saveNews(news: News): void {
-  if (!isServer()) return
-
+  ensureDataDir()
   const newsItems = getNews()
+
   const existingIndex = newsItems.findIndex((n) => n.id === news.id)
 
   if (existingIndex >= 0) {
@@ -93,37 +133,26 @@ export function saveNews(news: News): void {
     newsItems.push(news)
   }
 
-  // Atualizar o armazenamento em memória
-  serverMemoryStore.news = newsItems
+  const fullPath = path.join(process.cwd(), NEWS_FILE)
+  fs.writeFileSync(fullPath, JSON.stringify(newsItems, null, 2))
 }
 
 // Delete a review
 export function deleteReview(id: string): void {
-  if (!isServer()) return
-
+  ensureDataDir()
   const reviews = getReviews()
   const filteredReviews = reviews.filter((review) => review.id !== id)
 
-  // Atualizar o armazenamento em memória
-  serverMemoryStore.reviews = filteredReviews
+  const fullPath = path.join(process.cwd(), REVIEWS_FILE)
+  fs.writeFileSync(fullPath, JSON.stringify(filteredReviews, null, 2))
 }
 
 // Delete a news
 export function deleteNews(id: string): void {
-  if (!isServer()) return
-
+  ensureDataDir()
   const newsItems = getNews()
   const filteredNews = newsItems.filter((news) => news.id !== id)
 
-  // Atualizar o armazenamento em memória
-  serverMemoryStore.news = filteredNews
-}
-
-// Funções auxiliares que não dependem de fs
-export function ensureDataDir() {
-  // Não faz nada, apenas mantida para compatibilidade
-}
-
-export function seedDatabaseIfEmpty() {
-  // Não faz nada, apenas mantida para compatibilidade
+  const fullPath = path.join(process.cwd(), NEWS_FILE)
+  fs.writeFileSync(fullPath, JSON.stringify(filteredNews, null, 2))
 }
