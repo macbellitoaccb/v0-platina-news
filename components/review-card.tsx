@@ -37,7 +37,7 @@ export default function ReviewCard({ review, featured = false, variant = "defaul
                   </span>
                 ))}
               </div>
-              <TrophyIcon rating={review.rating} />
+              <TrophyIcon rating={review.rating} size="md" showLabel showDescription vertical />
             </div>
             <h3 className="magazine-title text-xl font-bold line-clamp-2 mb-1">{review.gameName}</h3>
             <p className="text-sm text-muted-foreground line-clamp-2">{review.title}</p>
@@ -50,8 +50,8 @@ export default function ReviewCard({ review, featured = false, variant = "defaul
   if (variant === "horizontal") {
     return (
       <Link href={`/reviews/${review.slug}`} className="group h-full">
-        <div className="magazine-card card-hover flex overflow-hidden rounded-lg h-full">
-          <div className="relative w-1/3">
+        <div className="magazine-card card-hover relative h-full overflow-hidden rounded-lg">
+          <div className="absolute inset-0">
             <Image
               src={review.image || "/placeholder.svg?height=200&width=300"}
               alt={review.title}
@@ -60,15 +60,21 @@ export default function ReviewCard({ review, featured = false, variant = "defaul
               sizes="33vw"
             />
           </div>
-          <div className="w-2/3 p-3 flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold line-clamp-1">{review.gameName}</h3>
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{review.title}</p>
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent"></div>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <div className="mb-2 flex justify-between items-center">
+              <div className="flex flex-wrap gap-1">
+                {review.genres.slice(0, 1).map((genre) => (
+                  <span key={genre} className="game-tag">
+                    {genre}
+                  </span>
+                ))}
+              </div>
+              <TrophyIcon rating={review.rating} size="md" showLabel showDescription vertical />
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</span>
-              <TrophyIcon rating={review.rating} size="sm" />
-            </div>
+            <h3 className="text-sm font-bold line-clamp-2 mb-1">{review.gameName}</h3>
+            <p className="text-xs text-muted-foreground line-clamp-1">{review.title}</p>
           </div>
         </div>
       </Link>
@@ -87,8 +93,8 @@ export default function ReviewCard({ review, featured = false, variant = "defaul
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute top-0 right-0 m-3 bg-background/80 backdrop-blur-sm p-1 rounded-md">
-            <TrophyIcon rating={review.rating} />
+          <div className="absolute top-0 right-0 m-3 bg-background/80 backdrop-blur-sm p-2 rounded-md">
+            <TrophyIcon rating={review.rating} size="md" showLabel showDescription vertical />
           </div>
         </div>
         <div className="p-4">

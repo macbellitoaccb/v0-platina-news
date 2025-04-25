@@ -14,7 +14,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Seu portal definitivo para reviews e notícias do mundo dos games.
+              Seu portal definitivo para reviews, notícias e guias do mundo dos games.
             </p>
             <div className="flex gap-4 mt-2">
               <Link href="#" className="text-muted-foreground hover:text-primary">
@@ -52,6 +52,11 @@ export default function Footer() {
               <li>
                 <Link href="/noticias" className="text-muted-foreground hover:text-primary">
                   Notícias
+                </Link>
+              </li>
+              <li>
+                <Link href="/guias" className="text-muted-foreground hover:text-primary">
+                  Guias de Platina
                 </Link>
               </li>
               <li>

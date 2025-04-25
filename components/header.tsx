@@ -46,6 +46,12 @@ export default function Header() {
             >
               Notícias
             </Link>
+            <Link
+              href="/guias"
+              className="text-sm font-medium uppercase tracking-wide transition-colors hover:text-primary"
+            >
+              Guias
+            </Link>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
               <Search className="h-5 w-5" />
             </Button>
@@ -118,6 +124,13 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Notícias
+              </Link>
+              <Link
+                href="/guias"
+                className="text-sm font-medium transition-colors hover:text-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Guias
               </Link>
               <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="w-full gap-2">

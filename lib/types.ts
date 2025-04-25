@@ -24,13 +24,20 @@ export interface AdditionalImage {
   caption: string
 }
 
+export interface TrophyGuideStep {
+  title: string
+  description: string
+  image?: string
+  video?: string
+}
+
 export interface Post {
   id: string
   title: string
   slug: string
   content: string
   image: string
-  type: "review" | "news"
+  type: "review" | "news" | "guide"
   createdAt: string
   updatedAt: string
   author?: Author
@@ -50,4 +57,13 @@ export interface News extends Post {
   type: "news"
 }
 
-export type AllPosts = Review | News
+export interface Guide extends Post {
+  type: "guide"
+  gameName: string
+  difficulty: PlatinaDifficulty
+  estimatedTime: string
+  steps: TrophyGuideStep[]
+  tags: string[]
+}
+
+export type AllPosts = Review | News | Guide

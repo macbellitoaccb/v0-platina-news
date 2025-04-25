@@ -24,6 +24,12 @@ export default function AdminPage() {
               Nova Notícia
             </Button>
           </Link>
+          <Link href="/admin/novo/guia">
+            <Button variant="secondary">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Novo Guia
+            </Button>
+          </Link>
         </div>
       </div>
 

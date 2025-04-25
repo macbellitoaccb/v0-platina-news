@@ -1,13 +1,15 @@
-import { getNews, getReviews } from "@/lib/data"
+import { getNews, getReviews, getAllPosts } from "@/lib/data"
 import ReviewCard from "@/components/review-card"
 import NewsCard from "@/components/news-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowRight, Star, TrendingUp, Award, Gamepad2 } from "lucide-react"
+import { ArrowRight, Star, TrendingUp, Award, Gamepad2, Clock } from "lucide-react"
+import PostCard from "@/components/post-card"
 
 export default function Home() {
   const reviews = getReviews()
   const news = getNews()
+  const allPosts = getAllPosts()
 
   // Pegar os 5 reviews mais recentes
   const latestReviews = [...reviews]
@@ -18,6 +20,11 @@ export default function Home() {
   const latestNews = [...news]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
+
+  // Pegar os posts mais recentes (reviews e notícias)
+  const latestPosts = [...allPosts]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 6)
 
   // Pegar os reviews com troféu platina
   const platinumReviews = reviews.filter((review) => review.rating === "platinum").slice(0, 2)
@@ -52,6 +59,22 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Latest Posts Section */}
+      <section className="section-highlight">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            <h2 className="text-2xl font-black tracking-tight">ÚLTIMOS POSTS</h2>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {latestPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
         </div>
       </section>
 
