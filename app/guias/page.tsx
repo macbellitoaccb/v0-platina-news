@@ -4,11 +4,43 @@ import Image from "next/image"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
 
-export default function GuidesPage() {
-  const guides = getGuides()
+export default async function GuidesPage() {
+  const guides = await getGuides()
 
   // Ordenar guias por data (mais recentes primeiro)
   const sortedGuides = [...guides].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  const getDifficultyLabel = (difficulty: string) => {
+    const difficultyNumber = Number.parseInt(difficulty)
+
+    if (difficultyNumber <= 2) {
+      return "Fácil"
+    } else if (difficultyNumber <= 4) {
+      return "Média"
+    } else if (difficultyNumber <= 6) {
+      return "Difícil"
+    } else if (difficultyNumber <= 8) {
+      return "Hardcore"
+    } else {
+      return "Insano"
+    }
+  }
+
+  const getDifficultyColor = (difficulty: string) => {
+    const difficultyNumber = Number.parseInt(difficulty)
+
+    if (difficultyNumber <= 2) {
+      return "text-green-500"
+    } else if (difficultyNumber <= 4) {
+      return "text-yellow-500"
+    } else if (difficultyNumber <= 6) {
+      return "text-orange-500"
+    } else if (difficultyNumber <= 8) {
+      return "text-red-500"
+    } else {
+      return "text-purple-500"
+    }
+  }
 
   return (
     <div className="space-y-12">
@@ -46,25 +78,9 @@ export default function GuidesPage() {
                   <span className="text-xs text-muted-foreground">{formatDate(guide.createdAt)}</span>
                   <span className="text-xs">
                     Dificuldade:
-                    <span
-                      className={
-                        guide.difficulty === "easy"
-                          ? "text-green-500"
-                          : guide.difficulty === "medium"
-                            ? "text-yellow-500"
-                            : guide.difficulty === "hard"
-                              ? "text-orange-500"
-                              : "text-red-500"
-                      }
-                    >
+                    <span className={getDifficultyColor(guide.difficulty)}>
                       {" "}
-                      {guide.difficulty === "easy"
-                        ? "Fácil"
-                        : guide.difficulty === "medium"
-                          ? "Média"
-                          : guide.difficulty === "hard"
-                            ? "Difícil"
-                            : "Muito Difícil"}
+                      {getDifficultyLabel(guide.difficulty)} ({guide.difficulty}/10)
                     </span>
                   </span>
                 </div>

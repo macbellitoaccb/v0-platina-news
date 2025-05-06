@@ -1,14 +1,27 @@
 export type TrophyRating = "bronze" | "silver" | "gold" | "platinum"
 
-export type PlatinaDifficulty = "easy" | "medium" | "hard" | "very-hard"
+export type PlatinaDifficulty =
+  | "1"
+  | "2" // Fácil
+  | "3"
+  | "4" // Média
+  | "5"
+  | "6" // Difícil
+  | "7"
+  | "8" // Hardcore
+  | "9"
+  | "10" // Insano
 
 export interface Author {
+  id?: string
   name: string
   avatar?: string
   psnId?: string
   instagram?: string
   twitter?: string
   bio?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface PlatinaGuide {
@@ -20,15 +33,21 @@ export interface PlatinaGuide {
 }
 
 export interface AdditionalImage {
+  id?: string
+  review_id?: string
   url: string
   caption: string
+  display_order?: number
 }
 
 export interface TrophyGuideStep {
+  id?: string
+  guide_id?: string
   title: string
   description: string
   image?: string
   video?: string
+  display_order?: number
 }
 
 export interface Post {
@@ -38,9 +57,10 @@ export interface Post {
   content: string
   image: string
   type: "review" | "news" | "guide"
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   author?: Author
+  author_id?: string
 }
 
 export interface Review extends Post {
@@ -67,3 +87,71 @@ export interface Guide extends Post {
 }
 
 export type AllPosts = Review | News | Guide
+
+// Interfaces para dados do Supabase
+export interface DbReview {
+  id: string
+  title: string
+  slug: string
+  content: string
+  image: string
+  created_at: string
+  updated_at: string
+  rating: TrophyRating
+  game_name: string
+  author_id?: string
+  platina_guide?: PlatinaGuide
+}
+
+export interface DbNews {
+  id: string
+  title: string
+  slug: string
+  content: string
+  image: string
+  created_at: string
+  updated_at: string
+  author_id?: string
+}
+
+export interface DbGuide {
+  id: string
+  title: string
+  slug: string
+  content: string
+  image: string
+  created_at: string
+  updated_at: string
+  game_name: string
+  difficulty: PlatinaDifficulty
+  estimated_time: string
+  author_id?: string
+}
+
+export interface DbGenre {
+  id: string
+  name: string
+}
+
+export interface DbTag {
+  id: string
+  name: string
+}
+
+export interface DbAdditionalImage {
+  id: string
+  review_id: string
+  url: string
+  caption: string
+  display_order: number
+}
+
+export interface DbGuideStep {
+  id: string
+  guide_id: string
+  title: string
+  description: string
+  image?: string
+  video?: string
+  display_order: number
+}

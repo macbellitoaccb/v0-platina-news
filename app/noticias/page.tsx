@@ -2,8 +2,8 @@ import { getNews } from "@/lib/data"
 import NewsCard from "@/components/news-card"
 import { Newspaper } from "lucide-react"
 
-export default function NoticiasPage() {
-  const news = getNews()
+export default async function NoticiasPage() {
+  const news = await getNews()
 
   // Ordenar notícias por data (mais recentes primeiro)
   const sortedNews = [...news].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

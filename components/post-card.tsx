@@ -10,7 +10,8 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const isReview = post.type === "review"
-  const postUrl = isReview ? `/reviews/${post.slug}` : `/noticias/${post.slug}`
+  const isGuide = post.type === "guide"
+  const postUrl = isReview ? `/reviews/${post.slug}` : isGuide ? `/guias/${post.slug}` : `/noticias/${post.slug}`
 
   return (
     <Link href={postUrl} className="group">
@@ -29,8 +30,12 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
           )}
           <div className="absolute top-0 left-0 m-3">
-            <span className={`text-xs font-medium px-2 py-1 rounded ${isReview ? "bg-purple-600" : "bg-blue-600"}`}>
-              {isReview ? "REVIEW" : "NOTÍCIA"}
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded ${
+                isReview ? "bg-purple-600" : isGuide ? "bg-green-600" : "bg-blue-600"
+              }`}
+            >
+              {isReview ? "REVIEW" : isGuide ? "GUIA DE PLATINA" : "NOTÍCIA"}
             </span>
           </div>
         </div>

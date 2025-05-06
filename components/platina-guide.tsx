@@ -8,14 +8,23 @@ interface PlatinaGuideProps {
 export default function PlatinaGuide({ guide }: PlatinaGuideProps) {
   if (!guide) return null
 
-  const difficultyMap: Record<PlatinaDifficulty, { label: string; color: string }> = {
-    easy: { label: "Fácil", color: "text-green-500" },
-    medium: { label: "Média", color: "text-yellow-500" },
-    hard: { label: "Difícil", color: "text-orange-500" },
-    "very-hard": { label: "Muito Difícil", color: "text-red-500" },
+  const getDifficultyInfo = (difficulty: PlatinaDifficulty) => {
+    const difficultyNumber = Number.parseInt(difficulty)
+
+    if (difficultyNumber <= 2) {
+      return { label: "Fácil", color: "text-green-500", value: `${difficulty}/10` }
+    } else if (difficultyNumber <= 4) {
+      return { label: "Média", color: "text-yellow-500", value: `${difficulty}/10` }
+    } else if (difficultyNumber <= 6) {
+      return { label: "Difícil", color: "text-orange-500", value: `${difficulty}/10` }
+    } else if (difficultyNumber <= 8) {
+      return { label: "Hardcore", color: "text-red-500", value: `${difficulty}/10` }
+    } else {
+      return { label: "Insano", color: "text-purple-500", value: `${difficulty}/10` }
+    }
   }
 
-  const difficulty = difficultyMap[guide.difficulty]
+  const difficulty = getDifficultyInfo(guide.difficulty)
 
   return (
     <div className="space-y-4 p-4 bg-secondary/50 rounded-lg border border-border/50">
@@ -28,7 +37,10 @@ export default function PlatinaGuide({ guide }: PlatinaGuideProps) {
         <div className="flex items-center gap-2">
           <Award className={`h-4 w-4 ${difficulty.color}`} />
           <span className="text-sm">
-            Dificuldade: <span className={difficulty.color}>{difficulty.label}</span>
+            Dificuldade:{" "}
+            <span className={difficulty.color}>
+              {difficulty.label} ({difficulty.value})
+            </span>
           </span>
         </div>
 

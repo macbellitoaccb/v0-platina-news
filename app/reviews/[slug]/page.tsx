@@ -16,8 +16,8 @@ interface ReviewPageProps {
   }
 }
 
-export default function ReviewPage({ params }: ReviewPageProps) {
-  const review = getReviewBySlug(params.slug)
+export default async function ReviewPage({ params }: ReviewPageProps) {
+  const review = await getReviewBySlug(params.slug)
 
   if (!review) {
     notFound()
@@ -26,7 +26,7 @@ export default function ReviewPage({ params }: ReviewPageProps) {
   const trophyInfo = getTrophyInfo(review.rating)
 
   // Pegar reviews relacionadas (mesmo gênero)
-  const allReviews = getReviews()
+  const allReviews = await getReviews()
   const relatedReviews = allReviews
     .filter((r) => r.id !== review.id && r.genres.some((g) => review.genres.includes(g)))
     .slice(0, 3)
@@ -70,7 +70,7 @@ export default function ReviewPage({ params }: ReviewPageProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* Imagem principal - reduzida */}
+            {/* Imagem principal - coluna maior */}
             <div className="md:col-span-7">
               <div className="relative aspect-video w-full overflow-hidden rounded-lg">
                 <Image
@@ -91,7 +91,7 @@ export default function ReviewPage({ params }: ReviewPageProps) {
               </div>
             </div>
 
-            {/* Guia de platina e início do texto */}
+            {/* Guia de platina - coluna menor */}
             <div className="md:col-span-5 space-y-4">
               {review.platinaGuide && (
                 <div>
@@ -99,19 +99,11 @@ export default function ReviewPage({ params }: ReviewPageProps) {
                   <PlatinaGuide guide={review.platinaGuide} />
                 </div>
               )}
-
-              <div>
-                <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Início da Review</h3>
-                <div className="prose prose-invert max-w-none text-sm">
-                  <p>{paragraphs[0]}</p>
-                  {paragraphs.length > 1 && <p className="text-primary text-xs mt-2">Continue lendo abaixo...</p>}
-                </div>
-              </div>
             </div>
           </div>
 
-          <div className="prose prose-invert max-w-none mt-8">
-            {paragraphs.slice(1).map((paragraph, index) => (
+          <div className="prose prose-invert max-w-none">
+            {paragraphs.map((paragraph, index) => (
               <p key={index} className="mb-4">
                 {paragraph}
               </p>
@@ -151,23 +143,13 @@ export default function ReviewPage({ params }: ReviewPageProps) {
         <div className="mt-12 pt-6 border-t border-border/50 space-y-6">
           <h2 className="text-2xl font-bold">Ficha Técnica</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Autor do review */}
-            {review.author && (
-              <div>
-                <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Autor</h3>
-                <AuthorCard author={review.author} />
-              </div>
-            )}
-
-            {/* Guia de platina */}
-            {!review.platinaGuide && (
-              <div>
-                <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Como Platinar</h3>
-                <PlatinaGuide guide={review.platinaGuide} />
-              </div>
-            )}
-          </div>
+          {/* Autor do review */}
+          {review.author && (
+            <div>
+              <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Autor</h3>
+              <AuthorCard author={review.author} />
+            </div>
+          )}
         </div>
       </article>
 

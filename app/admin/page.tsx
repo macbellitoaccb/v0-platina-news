@@ -4,8 +4,8 @@ import { getAllPosts } from "@/lib/data"
 import { formatDate } from "@/lib/utils"
 import { PlusCircle } from "lucide-react"
 
-export default function AdminPage() {
-  const posts = getAllPosts()
+export default async function AdminPage() {
+  const posts = await getAllPosts()
 
   return (
     <div className="space-y-6">

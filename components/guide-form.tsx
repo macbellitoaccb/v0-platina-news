@@ -40,7 +40,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
     content: initialData?.content || "",
     image: initialData?.image || "",
     gameName: initialData?.gameName || "",
-    difficulty: initialData?.difficulty || ("medium" as PlatinaDifficulty),
+    difficulty: initialData?.difficulty || ("3" as PlatinaDifficulty),
     estimatedTime: initialData?.estimatedTime || "",
     tags: initialData?.tags?.join(", ") || "",
   })
@@ -84,7 +84,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
 
     try {
       const now = new Date().toISOString()
-      const id = initialData?.id || `${Date.now()}`
+      const id = initialData?.id || undefined
       const slug = initialData?.slug || slugify(formData.gameName + "-" + formData.title)
 
       const data: Guide = {
@@ -153,16 +153,22 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="difficulty">Dificuldade</Label>
+              <Label htmlFor="difficulty">Dificuldade (1-10)</Label>
               <Select value={formData.difficulty} onValueChange={(value) => handleSelectChange("difficulty", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a dificuldade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="easy">Fácil</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="hard">Difícil</SelectItem>
-                  <SelectItem value="very-hard">Muito Difícil</SelectItem>
+                  <SelectItem value="1">1/10 - Fácil</SelectItem>
+                  <SelectItem value="2">2/10 - Fácil</SelectItem>
+                  <SelectItem value="3">3/10 - Média</SelectItem>
+                  <SelectItem value="4">4/10 - Média</SelectItem>
+                  <SelectItem value="5">5/10 - Difícil</SelectItem>
+                  <SelectItem value="6">6/10 - Difícil</SelectItem>
+                  <SelectItem value="7">7/10 - Hardcore</SelectItem>
+                  <SelectItem value="8">8/10 - Hardcore</SelectItem>
+                  <SelectItem value="9">9/10 - Insano</SelectItem>
+                  <SelectItem value="10">10/10 - Insano</SelectItem>
                 </SelectContent>
               </Select>
             </div>

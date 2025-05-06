@@ -86,7 +86,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
     try {
       const now = new Date().toISOString()
-      const id = initialData?.id || `${Date.now()}`
+      const id = initialData?.id || undefined
       const slug = initialData?.slug || slugify(isReview ? formData.gameName : formData.title)
 
       const baseData = {

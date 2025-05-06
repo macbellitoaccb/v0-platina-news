@@ -2,8 +2,8 @@ import { getReviews } from "@/lib/data"
 import ReviewCard from "@/components/review-card"
 import { Trophy } from "lucide-react"
 
-export default function ReviewsPage() {
-  const reviews = getReviews()
+export default async function ReviewsPage() {
+  const reviews = await getReviews()
 
   // Agrupar reviews por rating
   const platinumReviews = reviews.filter((review) => review.rating === "platinum")

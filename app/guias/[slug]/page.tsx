@@ -13,27 +13,36 @@ interface GuidePageProps {
   }
 }
 
-export default function GuidePage({ params }: GuidePageProps) {
-  const guide = getGuideBySlug(params.slug)
+export default async function GuidePage({ params }: GuidePageProps) {
+  const guide = await getGuideBySlug(params.slug)
 
   if (!guide) {
     notFound()
   }
 
   // Pegar outros guias
-  const allGuides = getGuides()
+  const allGuides = await getGuides()
   const relatedGuides = allGuides
     .filter((g) => g.id !== guide.id && g.tags.some((t) => guide.tags.includes(t)))
     .slice(0, 3)
 
-  const difficultyMap = {
-    easy: { label: "Fácil", color: "text-green-500" },
-    medium: { label: "Média", color: "text-yellow-500" },
-    hard: { label: "Difícil", color: "text-orange-500" },
-    "very-hard": { label: "Muito Difícil", color: "text-red-500" },
+  const getDifficultyInfo = (difficulty: string) => {
+    const difficultyNumber = Number.parseInt(difficulty)
+
+    if (difficultyNumber <= 2) {
+      return { label: "Fácil", color: "text-green-500" }
+    } else if (difficultyNumber <= 4) {
+      return { label: "Média", color: "text-yellow-500" }
+    } else if (difficultyNumber <= 6) {
+      return { label: "Difícil", color: "text-orange-500" }
+    } else if (difficultyNumber <= 8) {
+      return { label: "Hardcore", color: "text-red-500" }
+    } else {
+      return { label: "Insano", color: "text-purple-500" }
+    }
   }
 
-  const difficulty = difficultyMap[guide.difficulty]
+  const difficulty = getDifficultyInfo(guide.difficulty)
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -86,7 +95,10 @@ export default function GuidePage({ params }: GuidePageProps) {
           <div className="flex items-center gap-2 p-4 bg-secondary/50 rounded-lg">
             <Award className={`h-5 w-5 ${difficulty.color}`} />
             <span>
-              Dificuldade: <span className={difficulty.color}>{difficulty.label}</span>
+              Dificuldade:{" "}
+              <span className={difficulty.color}>
+                {difficulty.label} ({guide.difficulty}/10)
+              </span>
             </span>
           </div>
 

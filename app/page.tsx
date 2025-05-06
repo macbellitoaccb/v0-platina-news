@@ -3,13 +3,13 @@ import ReviewCard from "@/components/review-card"
 import NewsCard from "@/components/news-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowRight, Star, TrendingUp, Award, Gamepad2, Clock } from "lucide-react"
+import { ArrowRight, Star, TrendingUp, Gamepad2, Clock } from "lucide-react"
 import PostCard from "@/components/post-card"
 
-export default function Home() {
-  const reviews = getReviews()
-  const news = getNews()
-  const allPosts = getAllPosts()
+export default async function Home() {
+  const reviews = await getReviews()
+  const news = await getNews()
+  const allPosts = await getAllPosts()
 
   // Pegar os 5 reviews mais recentes
   const latestReviews = [...reviews]
@@ -25,9 +25,6 @@ export default function Home() {
   const latestPosts = [...allPosts]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6)
-
-  // Pegar os reviews com troféu platina
-  const platinumReviews = reviews.filter((review) => review.rating === "platinum").slice(0, 2)
 
   // Pegar os reviews com troféu ouro
   const goldReviews = reviews.filter((review) => review.rating === "gold").slice(0, 3)
@@ -135,27 +132,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Platinum Reviews Section */}
-      <section className="section-highlight">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary" />
-            <h2 className="text-2xl font-black tracking-tight">JOGOS PLATINA</h2>
-          </div>
-          <Link href="/reviews?rating=platinum">
-            <Button variant="link" className="gap-1 hover:gap-2 transition-all">
-              Ver todos <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {platinumReviews.map((review) => (
-            <ReviewCard key={review.id} review={review} featured />
-          ))}
-        </div>
-      </section>
-
       {/* Gold Reviews Section */}
       <section className="section-highlight">
         <div className="flex justify-between items-center mb-4">
@@ -172,7 +148,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {goldReviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard key={review.id} review={review} featured />
           ))}
         </div>
       </section>

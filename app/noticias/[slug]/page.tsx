@@ -13,15 +13,15 @@ interface NoticiaPageProps {
   }
 }
 
-export default function NoticiaPage({ params }: NoticiaPageProps) {
-  const news = getNewsBySlug(params.slug)
+export default async function NoticiaPage({ params }: NoticiaPageProps) {
+  const news = await getNewsBySlug(params.slug)
 
   if (!news) {
     notFound()
   }
 
   // Pegar outras notícias
-  const allNews = getNews()
+  const allNews = await getNews()
   const otherNews = allNews
     .filter((n) => n.id !== news.id)
     .sort(() => 0.5 - Math.random()) // Ordem aleatória
@@ -44,7 +44,7 @@ export default function NoticiaPage({ params }: NoticiaPageProps) {
                 <Clock className="h-4 w-4" />
                 <span>{formatDate(news.createdAt)}</span>
                 <span>•</span>
-                <span>Por Editor PlatinaNews</span>
+                <span>Por {news.author?.name || "Editor PlatinaNews"}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight magazine-title">{news.title}</h1>
             </div>

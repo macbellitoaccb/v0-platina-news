@@ -1,5 +1,5 @@
-import type { Review, News } from "./types"
-import { saveReview, saveNews, ensureDataDir } from "./data"
+import type { Review, News, Guide } from "./types"
+import { saveReview, saveNews, saveGuide, ensureDataDir } from "./data"
 
 // Autor padrão para os reviews
 const defaultAuthor = {
@@ -9,6 +9,96 @@ const defaultAuthor = {
   instagram: "@platina_hunter",
   twitter: "@platina_hunter",
   bio: "Caçador de troféus desde 2010. Especialista em RPGs e jogos de ação.",
+}
+
+// Guia de exemplo para The Last of Us Part 2
+export const sampleGuide: Guide = {
+  id: "tlou2-guide",
+  title: "Guia Completo de Platina",
+  slug: "the-last-of-us-part-2-guia-platina",
+  content: `The Last of Us Part II é um jogo de ação e aventura desenvolvido pela Naughty Dog e publicado pela Sony Interactive Entertainment. Lançado em 19 de junho de 2020 exclusivamente para PlayStation 4, o jogo é a sequência de The Last of Us (2013).
+
+Este guia irá ajudá-lo a obter todos os troféus e conquistar a platina em The Last of Us Part II. O jogo tem um total de 26 troféus (1 platina, 8 de ouro, 8 de prata e 9 de bronze).
+
+A boa notícia é que não há troféus multijogador, já que o jogo é exclusivamente single-player. Além disso, não há troféus missáveis, pois você pode usar o modo de seleção de capítulos para voltar a qualquer parte do jogo após terminar a história.
+
+A estratégia recomendada é jogar primeiro no modo normal para aproveitar a história, coletando o máximo de itens possível. Depois, use o modo de seleção de capítulos para coletar qualquer item que tenha perdido e completar os troféus restantes.`,
+  image:
+    "https://assets.reedpopcdn.com/the-last-of-us-part-2-walkthrough-guide-8001-1592495034582.jpg/BROK/thumbnail/1600x900/format/jpg/quality/80/the-last-of-us-part-2-walkthrough-guide-8001-1592495034582.jpg",
+  type: "guide",
+  createdAt: "2023-07-15T10:00:00.000Z",
+  updatedAt: "2023-07-15T10:00:00.000Z",
+  gameName: "The Last of Us Part II",
+  difficulty: "4",
+  estimatedTime: "30-40h",
+  tags: ["PS4", "PS5", "Naughty Dog", "Exclusivo Sony", "Ação", "Aventura"],
+  author: defaultAuthor,
+  steps: [
+    {
+      title: "Troféu de Platina - Mestre Sobrevivente",
+      description:
+        "Colete todos os outros troféus para ganhar a platina.\n\nEste troféu será desbloqueado automaticamente quando você conseguir todos os outros troféus do jogo.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/9/9c/Tlou2_plat.png",
+    },
+    {
+      title: "Troféu de Ouro - Que a Luz Guie Você",
+      description:
+        "Complete a história.\n\nEste troféu será desbloqueado automaticamente quando você terminar o jogo. A história principal leva aproximadamente 25-30 horas para ser concluída.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/a/a3/Tlou2_story.png",
+    },
+    {
+      title: "Troféu de Ouro - Tudo de Nós",
+      description:
+        "Colete todos os artefatos e registros.\n\nExistem 286 artefatos e registros espalhados pelo jogo. Use o modo de seleção de capítulos para voltar a áreas específicas e coletar os que você perdeu.\n\nDica: No menu de coletáveis, você pode ver quais itens estão faltando em cada capítulo.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/c/c5/Tlou2_artifacts.png",
+      video: "https://www.youtube.com/watch?v=vRaOxv-dSLs",
+    },
+    {
+      title: "Troféu de Ouro - Em Memória",
+      description:
+        "Encontre todas as cartas comerciais.\n\nExistem 48 cartas comerciais espalhadas pelo jogo. Elas geralmente estão escondidas em gavetas, armários ou em locais menos óbvios.\n\nDica: As cartas comerciais emitem um som distinto quando você está próximo delas, facilitando sua localização.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/e/e1/Tlou2_cards.png",
+      video: "https://www.youtube.com/watch?v=BOO0XSfEFQg",
+    },
+    {
+      title: "Troféu de Ouro - Mestre Armeiro",
+      description:
+        "Atualize todas as armas.\n\nVocê precisará coletar muitas peças de armas durante o jogo para conseguir este troféu. Certifique-se de explorar bem cada área e procurar em gavetas, armários e mesas de trabalho.\n\nDica: Algumas atualizações só estarão disponíveis em capítulos específicos, então preste atenção às bancadas de trabalho durante sua jornada.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/c/c9/Tlou2_weapons.png",
+    },
+    {
+      title: "Troféu de Prata - Sobrevivente Experiente",
+      description:
+        "Atualize todas as habilidades.\n\nVocê precisará coletar muitos suplementos durante o jogo para conseguir este troféu. Certifique-se de explorar bem cada área e procurar em gavetas, armários e banheiros.\n\nDica: Você não conseguirá desbloquear todas as habilidades em uma única jogada, então foque nas árvores de habilidades que combinam melhor com seu estilo de jogo.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/0/0c/Tlou2_skills.png",
+    },
+    {
+      title: "Troféu de Prata - Enciclopédia Ambulante",
+      description:
+        "Colete todos os manuais de treinamento.\n\nExistem 25 manuais de treinamento espalhados pelo jogo. Eles desbloqueiam novas árvores de habilidades, então são muito importantes para o progresso.\n\nDica: Os manuais geralmente estão em locais mais óbvios que outros coletáveis, frequentemente em mesas ou estantes.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/5/5c/Tlou2_manuals.png",
+      video: "https://www.youtube.com/watch?v=I_iU0IPOFq0",
+    },
+    {
+      title: "Troféu de Bronze - Afiada como uma Faca",
+      description:
+        "Derrote um Shambler (infectado avançado) com uma faca.\n\nOs Shamblers são inimigos infectados que aparecem em áreas com água ou umidade. Eles são reconhecíveis por sua aparência inchada e pela capacidade de liberar uma nuvem de esporos ácidos.\n\nDica: A melhor estratégia é enfraquecer o Shambler com tiros e então finalizar com a faca quando ele estiver com pouca vida.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/a/a8/Tlou2_shambler.png",
+    },
+    {
+      title: "Troféu de Bronze - Dedos Ágeis",
+      description:
+        "Toque 'Take On Me' na guitarra.\n\nDurante o capítulo 'Seattle Dia 1 - A Estádio', você encontrará uma guitarra em um quarto. Interaja com ela e toque a sequência correta para desbloquear este troféu.\n\nDica: A sequência é: Triângulo, Círculo, Quadrado, X, Direita, Baixo, Esquerda.",
+      image: "https://oyster.ignimgs.com/mediawiki/apis.ign.com/the-last-of-us-2/d/d9/Tlou2_guitar.png",
+      video: "https://www.youtube.com/watch?v=NKeU1twQYX4",
+    },
+    {
+      title: "Dicas Gerais para Platinar",
+      description:
+        "1. Jogue primeiro no modo normal para aproveitar a história.\n\n2. Use o modo de seleção de capítulos para voltar e coletar itens perdidos.\n\n3. Utilize guias online para localizar coletáveis específicos.\n\n4. Economize recursos para atualizações de armas e habilidades.\n\n5. Não se preocupe com troféus missáveis, pois todos podem ser obtidos após terminar o jogo.",
+      image: "https://cdn.mos.cms.futurecdn.net/2sFGpJFdPHfNKUokiTKtPk.jpg",
+    },
+  ],
 }
 
 export const sampleReviews: Review[] = [
@@ -397,6 +487,9 @@ export function seedDatabase() {
   sampleNews.forEach((news) => {
     saveNews(news)
   })
+
+  // Adicionar guia de exemplo
+  saveGuide(sampleGuide)
 
   console.log("Banco de dados populado com dados de exemplo!")
 }
