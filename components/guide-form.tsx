@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,21 +14,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Trash2 } from "lucide-react"
 import type { Guide, TrophyGuideStep, PlatinaDifficulty, Author } from "@/lib/types"
 import { slugify } from "@/lib/utils"
-import AuthorForm from "./author-form"
+import { getAuthors } from "@/lib/data" // Importar getAuthors
 
 interface GuideFormProps {
   initialData?: Guide
   onSubmit: (data: Guide) => Promise<void>
-}
-
-// Autor padrão
-const defaultAuthor: Author = {
-  name: "Editor PlatinaNews",
-  avatar: "",
-  psnId: "",
-  instagram: "",
-  twitter: "",
-  bio: "",
 }
 
 export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
@@ -49,9 +39,20 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
     initialData?.steps || [{ title: "", description: "", image: "", video: "" }],
   )
 
-  const [author, setAuthor] = useState<Author>(initialData?.author || { ...defaultAuthor })
+  const [authors, setAuthors] = useState<Author[]>([])
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(
+    initialData?.author_id || null, // Usar author_id do initialData
+  )
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    async function fetchAuthors() {
+      const fetchedAuthors = await getAuthors()
+      setAuthors(fetchedAuthors)
+    }
+    fetchAuthors()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -96,7 +97,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
         type: "guide",
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
-        author: author.name ? author : undefined,
+        author_id: selectedAuthorId, // Enviar o ID do autor selecionado
         gameName: formData.gameName,
         difficulty: formData.difficulty as PlatinaDifficulty,
         estimatedTime: formData.estimatedTime,
@@ -277,7 +278,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
                   </div>
                 ))}
 
-                <Button type="button" variant="outline" onClick={addStep} className="w-full">
+                <Button type="button" variant="outline" onClick={addStep} className="w-full bg-transparent">
                   <Plus className="h-4 w-4 mr-2" /> Adicionar Passo
                 </Button>
               </div>
@@ -290,11 +291,28 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
             <CardHeader>
               <CardTitle>Informações do Autor</CardTitle>
               <CardDescription>
-                Adicione detalhes sobre o autor deste guia. Estas informações serão exibidas na página.
+                Selecione um autor existente ou crie um novo na seção "Gerenciar Autores".
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AuthorForm author={author} onChange={setAuthor} />
+              <div className="space-y-2">
+                <Label htmlFor="author-select">Autor</Label>
+                <Select
+                  value={selectedAuthorId || ""}
+                  onValueChange={(value) => setSelectedAuthorId(value === "" ? null : value)}
+                >
+                  <SelectTrigger id="author-select">
+                    <SelectValue placeholder="Selecione um autor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {authors.map((author) => (
+                      <SelectItem key={author.id} value={author.id!}>
+                        {author.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

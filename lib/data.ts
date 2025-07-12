@@ -53,6 +53,8 @@ async function convertDbReviewToReview(dbReview: DbReview, supabase: any): Promi
             instagram: authorData.instagram,
             twitter: authorData.twitter,
             bio: authorData.bio,
+            user_id: authorData.user_id,
+            role: authorData.role,
           }
         }
       } catch (error) {
@@ -115,6 +117,7 @@ async function convertDbReviewToReview(dbReview: DbReview, supabase: any): Promi
       genres,
       tags,
       author,
+      author_id: dbReview.author_id, // Incluir author_id
       platinaGuide: dbReview.platina_guide,
       additionalImages,
     }
@@ -127,13 +130,14 @@ async function convertDbReviewToReview(dbReview: DbReview, supabase: any): Promi
       slug: dbReview.slug,
       content: dbReview.content,
       image: dbReview.image,
-      type: "review",
+      type: "review" as const,
       createdAt: dbReview.created_at,
       updatedAt: dbReview.updated_at,
       rating: dbReview.rating,
       gameName: dbReview.game_name,
       genres: [],
       tags: [],
+      author_id: dbReview.author_id, // Incluir author_id
       platinaGuide: dbReview.platina_guide,
       additionalImages: [],
     }
@@ -157,6 +161,8 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
           instagram: authorData.instagram,
           twitter: authorData.twitter,
           bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
         }
       }
     }
@@ -171,6 +177,7 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       createdAt: dbNews.created_at,
       updatedAt: dbNews.updated_at,
       author,
+      author_id: dbNews.author_id, // Incluir author_id
     }
   } catch (error) {
     console.error("Error converting DB news:", error)
@@ -183,6 +190,7 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       type: "news",
       createdAt: dbNews.created_at,
       updatedAt: dbNews.updated_at,
+      author_id: dbNews.author_id, // Incluir author_id
     }
   }
 }
@@ -204,6 +212,8 @@ async function convertDbGuideToGuide(dbGuide: DbGuide, supabase: any): Promise<G
           instagram: authorData.instagram,
           twitter: authorData.twitter,
           bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
         }
       }
     }
@@ -242,6 +252,7 @@ async function convertDbGuideToGuide(dbGuide: DbGuide, supabase: any): Promise<G
       difficulty: dbGuide.difficulty,
       estimatedTime: dbGuide.estimated_time,
       author,
+      author_id: dbGuide.author_id, // Incluir author_id
       tags,
       steps,
     }
@@ -259,6 +270,7 @@ async function convertDbGuideToGuide(dbGuide: DbGuide, supabase: any): Promise<G
       gameName: dbGuide.game_name,
       difficulty: dbGuide.difficulty,
       estimatedTime: dbGuide.estimated_time,
+      author_id: dbGuide.author_id, // Incluir author_id
       tags: [],
       steps: [],
     }
@@ -266,10 +278,11 @@ async function convertDbGuideToGuide(dbGuide: DbGuide, supabase: any): Promise<G
 }
 
 // Function to save or update an author
-async function saveAuthor(author: Author): Promise<string> {
+export async function saveAuthor(author: Author): Promise<string> {
   const supabase = createSafeSupabaseClient()
 
   if (!supabase || !author.name) {
+    console.warn("Supabase not available or author name missing, cannot save author.")
     return ""
   }
 
@@ -286,6 +299,8 @@ async function saveAuthor(author: Author): Promise<string> {
           twitter: author.twitter,
           bio: author.bio,
           updated_at: new Date().toISOString(),
+          user_id: author.user_id, // Incluir user_id
+          role: author.role, // Incluir role
         })
         .eq("id", author.id)
         .select()
@@ -293,35 +308,159 @@ async function saveAuthor(author: Author): Promise<string> {
 
       if (error) {
         console.error("Error updating author:", error)
-        return ""
+        throw error
       }
 
       return data.id
     }
 
     // If no ID, create new
+    const newId = uuidv4()
     const { data, error } = await supabase
       .from("authors")
       .insert({
+        id: newId,
         name: author.name,
         avatar: author.avatar,
         psn_id: author.psnId,
         instagram: author.instagram,
         twitter: author.twitter,
         bio: author.bio,
+        user_id: author.user_id, // Incluir user_id
+        role: author.role, // Incluir role
       })
       .select()
       .single()
 
     if (error) {
       console.error("Error creating author:", error)
-      return ""
+      throw error
     }
 
     return data.id
   } catch (error) {
     console.error("Error saving author:", error)
-    return ""
+    throw error
+  }
+}
+
+// Function to fetch all authors
+export async function getAuthors(): Promise<Author[]> {
+  console.log("Fetching authors...")
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, returning empty authors array.")
+    return []
+  }
+
+  try {
+    const { data: dbAuthors, error } = await supabase.from("authors").select("*").order("name", { ascending: true })
+
+    if (error) {
+      console.error("Supabase error fetching authors:", error)
+      return []
+    }
+
+    if (!dbAuthors || dbAuthors.length === 0) {
+      console.log("No authors found in database.")
+      return []
+    }
+
+    console.log(`Found ${dbAuthors.length} authors in database.`)
+
+    return dbAuthors.map((dbAuthor: any) => ({
+      id: dbAuthor.id,
+      name: dbAuthor.name,
+      avatar: dbAuthor.avatar,
+      psnId: dbAuthor.psn_id,
+      instagram: dbAuthor.instagram,
+      twitter: dbAuthor.twitter,
+      bio: dbAuthor.bio,
+      user_id: dbAuthor.user_id,
+      role: dbAuthor.role,
+      created_at: dbAuthor.created_at,
+      updated_at: dbAuthor.updated_at,
+    }))
+  } catch (error) {
+    console.error("Unexpected error fetching authors:", error)
+    return []
+  }
+}
+
+// Function to fetch author by ID
+export async function getAuthorById(id: string): Promise<Author | null> {
+  console.log(`Fetching author with ID: ${id}...`)
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, returning null for author.")
+    return null
+  }
+
+  try {
+    const { data: dbAuthor, error } = await supabase.from("authors").select("*").eq("id", id).single()
+
+    if (error || !dbAuthor) {
+      console.error("Error fetching author by ID from Supabase:", error)
+      return null
+    }
+
+    console.log(`Found author: ${dbAuthor.name}`)
+    return {
+      id: dbAuthor.id,
+      name: dbAuthor.name,
+      avatar: dbAuthor.avatar,
+      psnId: dbAuthor.psn_id,
+      instagram: dbAuthor.instagram,
+      twitter: dbAuthor.twitter,
+      bio: dbAuthor.bio,
+      user_id: dbAuthor.user_id,
+      role: dbAuthor.role,
+      created_at: dbAuthor.created_at,
+      updated_at: dbAuthor.updated_at,
+    }
+  } catch (error) {
+    console.error("Unexpected error fetching author by ID:", error)
+    return null
+  }
+}
+
+// Function to fetch author by user_id
+export async function getAuthorByUserId(userId: string): Promise<Author | null> {
+  console.log(`Fetching author with user_id: ${userId}...`)
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, returning null for author by user ID.")
+    return null
+  }
+
+  try {
+    const { data: dbAuthor, error } = await supabase.from("authors").select("*").eq("user_id", userId).single()
+
+    if (error || !dbAuthor) {
+      console.error("Error fetching author by user_id from Supabase:", error)
+      return null
+    }
+
+    console.log(`Found author by user_id: ${dbAuthor.name}`)
+    return {
+      id: dbAuthor.id,
+      name: dbAuthor.name,
+      avatar: dbAuthor.avatar,
+      psnId: dbAuthor.psn_id,
+      instagram: dbAuthor.instagram,
+      twitter: dbAuthor.twitter,
+      bio: dbAuthor.bio,
+      user_id: dbAuthor.user_id,
+      role: dbAuthor.role,
+      created_at: dbAuthor.created_at,
+      updated_at: dbAuthor.updated_at,
+    }
+  } catch (error) {
+    console.error("Unexpected error fetching author by user_id:", error)
+    return null
   }
 }
 
@@ -450,6 +589,7 @@ export async function getReviews(): Promise<Review[]> {
             gameName: dbReview.game_name,
             genres: [],
             tags: [],
+            author_id: dbReview.author_id, // Incluir author_id
             platinaGuide: dbReview.platina_guide,
             additionalImages: [],
           }
@@ -522,6 +662,7 @@ export async function getNews(): Promise<News[]> {
             type: "news" as const,
             createdAt: dbNewsItem.created_at,
             updatedAt: dbNewsItem.updated_at,
+            author_id: dbNewsItem.author_id, // Incluir author_id
           }
         }
       }),
@@ -598,6 +739,7 @@ export async function getGuides(): Promise<Guide[]> {
             gameName: dbGuide.game_name,
             difficulty: dbGuide.difficulty,
             estimatedTime: dbGuide.estimated_time,
+            author_id: dbGuide.author_id, // Incluir author_id
             tags: [],
             steps: [],
           }
@@ -782,12 +924,6 @@ export async function saveReview(review: Review): Promise<void> {
   }
 
   try {
-    // Salvar autor se existir
-    let authorId = undefined
-    if (review.author) {
-      authorId = await saveAuthor(review.author)
-    }
-
     // Preparar dados do review para o banco
     const dbReview = {
       title: review.title,
@@ -796,7 +932,7 @@ export async function saveReview(review: Review): Promise<void> {
       image: review.image,
       rating: review.rating,
       game_name: review.gameName,
-      author_id: authorId,
+      author_id: review.author_id, // Usar author_id diretamente
       platina_guide: review.platinaGuide,
       updated_at: new Date().toISOString(),
     }
@@ -807,7 +943,7 @@ export async function saveReview(review: Review): Promise<void> {
 
       if (error) {
         console.error("Erro ao atualizar review:", error)
-        return
+        throw error
       }
     } else {
       // Se não existe, criar novo com UUID válido
@@ -895,19 +1031,13 @@ export async function saveNews(news: News): Promise<void> {
   }
 
   try {
-    // Salvar autor se existir
-    let authorId = undefined
-    if (news.author) {
-      authorId = await saveAuthor(news.author)
-    }
-
     // Preparar dados da notícia para o banco
     const dbNews = {
       title: news.title,
       slug: news.slug,
       content: news.content,
       image: news.image,
-      author_id: authorId,
+      author_id: news.author_id, // Usar author_id diretamente
       updated_at: new Date().toISOString(),
     }
 
@@ -954,12 +1084,6 @@ export async function saveGuide(guide: Guide): Promise<void> {
   }
 
   try {
-    // Salvar autor se existir
-    let authorId = undefined
-    if (guide.author) {
-      authorId = await saveAuthor(guide.author)
-    }
-
     // Preparar dados do guia para o banco
     const dbGuide = {
       title: guide.title,
@@ -969,7 +1093,7 @@ export async function saveGuide(guide: Guide): Promise<void> {
       game_name: guide.gameName,
       difficulty: guide.difficulty,
       estimated_time: guide.estimatedTime,
-      author_id: authorId,
+      author_id: guide.author_id, // Usar author_id diretamente
       updated_at: new Date().toISOString(),
     }
 
@@ -1090,6 +1214,27 @@ export async function deleteGuide(id: string): Promise<void> {
     if (error) throw error
   } catch (error) {
     console.error("Error deleting guide:", error)
+    throw error
+  }
+}
+
+export async function deleteAuthor(id: string): Promise<void> {
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, cannot delete author")
+    return
+  }
+
+  try {
+    // Antes de deletar o autor, você pode querer reatribuir posts ou definir author_id como NULL
+    // Por simplicidade, aqui apenas deletamos o autor.
+    // Em um sistema real, você teria uma política de integridade referencial.
+    const { error } = await supabase.from("authors").delete().eq("id", id)
+    if (error) throw error
+    console.log(`Author with ID ${id} deleted successfully.`)
+  } catch (error) {
+    console.error("Error deleting author:", error)
     throw error
   }
 }
