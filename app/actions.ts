@@ -9,17 +9,19 @@ import {
   deleteGuide,
   saveAuthor,
   deleteAuthor,
-  getAuthorByUserId,
 } from "@/lib/data"
 import type { Review, News, Guide, Author } from "@/lib/types"
-import { createServerSupabaseClient, createClientSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient, createPublicSupabaseClientForServer } from "@/lib/supabase" // Importe a nova função
 import { redirect } from "next/navigation"
 
 // --- Auth Actions ---
 export async function login(formData: FormData) {
-  const supabase = createClientSupabaseClient()
+  // Use a função para criar um cliente Supabase para ações de servidor com chave pública
+  const supabase = createPublicSupabaseClientForServer()
   if (!supabase) {
-    throw new Error("Supabase client not available.")
+    throw new Error(
+      "Supabase client not available. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    )
   }
 
   const email = formData.get("email") as string
@@ -39,9 +41,12 @@ export async function login(formData: FormData) {
 }
 
 export async function logout() {
-  const supabase = createClientSupabaseClient()
+  // Use a função para criar um cliente Supabase para ações de servidor com chave pública
+  const supabase = createPublicSupabaseClientForServer()
   if (!supabase) {
-    throw new Error("Supabase client not available.")
+    throw new Error(
+      "Supabase client not available. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    )
   }
 
   const { error } = await supabase.auth.signOut()
@@ -54,7 +59,7 @@ export async function logout() {
   redirect("/login") // Redireciona para a página de login após logout
 }
 
-// --- Content Management Actions ---
+// --- Content Management Actions (unchanged, as they use save/delete functions from lib/data which use createServerSupabaseClient) ---
 export async function createReview(data: Review) {
   return saveReview(data)
 }
@@ -93,7 +98,7 @@ export async function removeGuide(id: string) {
 
 // --- Author Management Actions ---
 export async function createAuthor(data: Author & { email: string; password: string }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerSupabaseClient() // Continua usando o cliente de serviço para admin.createUser
   if (!supabase) {
     throw new Error("Supabase client not available.")
   }
@@ -126,7 +131,7 @@ export async function updateAuthor(data: Author) {
 }
 
 export async function removeAuthor(id: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerSupabaseClient() // Continua usando o cliente de serviço para admin.deleteUser
   if (!supabase) {
     throw new Error("Supabase client not available.")
   }
@@ -148,30 +153,49 @@ export async function removeAuthor(id: string) {
     const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userIdToDelete)
     if (authDeleteError) {
       console.error("Error deleting auth user:", authDeleteError.message)
-      // Decide if you want to throw here or just log.
-      // If auth user deletion fails, the author profile is still gone.
       throw new Error(`Erro ao deletar usuário de autenticação: ${authDeleteError.message}`)
     }
   }
 }
 
 export async function updateMyProfile(data: Author) {
-  const supabase = createServerSupabaseClient()
+  // Use a função para criar um cliente Supabase para ações de servidor com chave pública
+  const supabase = createPublicSupabaseClientForServer()
   if (!supabase) {
-    throw new Error("Supabase client not available.")
+    throw new Error(
+      "Supabase client not available. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    )
   }
 
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser() // getUser deve usar a chave anon
   if (userError || !user) {
     throw new Error("Usuário não autenticado.")
   }
 
-  const currentAuthor = await getAuthorByUserId(user.id)
-  if (!currentAuthor) {
+  // A busca pelo autor também deve usar o cliente público, assumindo RLS configurado
+  const { data: currentAuthorData, error: currentAuthorError } = await supabase
+    .from("authors")
+    .select("*")
+    .eq("user_id", user.id)
+    .single()
+
+  if (currentAuthorError || !currentAuthorData) {
     throw new Error("Perfil de autor não encontrado para o usuário logado.")
+  }
+
+  const currentAuthor: Author = {
+    id: currentAuthorData.id,
+    name: currentAuthorData.name,
+    avatar: currentAuthorData.avatar,
+    psnId: currentAuthorData.psn_id,
+    instagram: currentAuthorData.instagram,
+    twitter: currentAuthorData.twitter,
+    bio: currentAuthorData.bio,
+    user_id: currentAuthorData.user_id,
+    role: currentAuthorData.role,
   }
 
   // Ensure the user can only update their own profile

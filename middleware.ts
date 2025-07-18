@@ -1,23 +1,31 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createPublicSupabaseClientForServer } from "@/lib/supabase" // Importe a nova função
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Create a Supabase client for the middleware
-  const supabase = createServerSupabaseClient()
+  // Create a Supabase client for the middleware using the public key
+  const supabase = createPublicSupabaseClientForServer()
+
+  if (!supabase) {
+    console.error("Supabase client not available in middleware. Cannot check session.")
+    // Decide how to handle this: redirect to login or allow access with no session
+    // For now, let's proceed as if no session exists, which will lead to redirects below.
+  }
 
   // Get the user session
   const {
     data: { session },
     error,
-  } = await supabase.auth.getSession()
+  } = supabase ? await supabase.auth.getSession() : { data: { session: null }, error: null } // Fallback if supabase client is null
 
   // Check if the user is authenticated and if they have an associated author profile with a role
   let isAdmin = false
-  if (session?.user) {
+  if (session?.user && supabase) {
+    // Ensure supabase client is available before querying
     try {
+      // Fetch author role using the public client (assuming RLS allows reading own role)
       const { data: authorData, error: authorError } = await supabase
         .from("authors")
         .select("role")
