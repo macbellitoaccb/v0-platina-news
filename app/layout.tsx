@@ -11,7 +11,7 @@ const montserrat = Montserrat({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "PlatinaNews - Reviews e Notícias de Games",
   description: "O seu portal de reviews e notícias sobre o mundo dos videogames",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

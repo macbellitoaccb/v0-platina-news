@@ -1,64 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { GamepadIcon as GameController, Menu, X, Search, User, LogOut } from "lucide-react"
-import { createClientSupabaseClient } from "@/lib/supabase"
-import { logout } from "@/app/actions"
-import { useRouter } from "next/navigation"
+import { GamepadIcon as GameController, Menu, X, Search, User } from "lucide-react"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const router = useRouter()
-
-  useEffect(() => {
-    const supabase = createClientSupabaseClient()
-    if (!supabase) return
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null)
-      if (session?.user) {
-        // Fetch author role
-        const { data: authorData, error } = await supabase
-          .from("authors")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single()
-        setIsAdmin(authorData?.role === "admin")
-      } else {
-        setIsAdmin(false)
-      }
-    })
-
-    // Initial check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null)
-      if (session?.user) {
-        supabase
-          .from("authors")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single()
-          .then(({ data: authorData, error }) => {
-            setIsAdmin(authorData?.role === "admin")
-          })
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  const handleLogout = async () => {
-    await logout()
-    router.push("/login") // Ensure redirect after logout
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -107,35 +55,12 @@ export default function Header() {
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
               <Search className="h-5 w-5" />
             </Button>
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Link href="/admin">
-                    <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                      <User className="h-4 w-4" />
-                      <span>Admin</span>
-                    </Button>
-                  </Link>
-                )}
-                <Link href="/meu-perfil">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span>Meu Perfil</span>
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="sm" className="gap-2" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" />
-                  <span>Sair</span>
-                </Button>
-              </>
-            ) : (
-              <Link href="/login">
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                  <User className="h-4 w-4" />
-                  <span>Login</span>
-                </Button>
-              </Link>
-            )}
+            <Link href="/admin">
+              <Button variant="outline" size="sm" className="gap-2">
+                <User className="h-4 w-4" />
+                <span>Admin</span>
+              </Button>
+            </Link>
           </nav>
         </div>
 
@@ -207,35 +132,12 @@ export default function Header() {
               >
                 Guias
               </Link>
-              {user ? (
-                <>
-                  {isAdmin && (
-                    <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent">
-                        <User className="h-4 w-4" />
-                        <span>Admin</span>
-                      </Button>
-                    </Link>
-                  )}
-                  <Link href="/meu-perfil" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full gap-2">
-                      <User className="h-4 w-4" />
-                      <span>Meu Perfil</span>
-                    </Button>
-                  </Link>
-                  <Button variant="ghost" size="sm" className="w-full gap-2" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4" />
-                    <span>Sair</span>
-                  </Button>
-                </>
-              ) : (
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent">
-                    <User className="h-4 w-4" />
-                    <span>Login</span>
-                  </Button>
-                </Link>
-              )}
+              <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="outline" size="sm" className="w-full gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Admin</span>
+                </Button>
+              </Link>
             </nav>
           </div>
         )}
