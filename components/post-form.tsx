@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,8 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Review, News, TrophyRating, AdditionalImage, Author, PlatinaGuide } from "@/lib/types"
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
-import AuthorForm from "./author-form"
-import PlatinaGuideForm from "./platina-guide-form"
+import PlatinaGuideForm from "./platina-guide-form" // Importar PlatinaGuideForm
+import { getAuthors } from "@/lib/data" // Importar getAuthors
 
 interface PostFormProps {
   type: "review" | "news"
@@ -23,19 +23,9 @@ interface PostFormProps {
   onSubmit: (data: any) => Promise<void>
 }
 
-// Autor padrão
-const defaultAuthor: Author = {
-  name: "Editor PlatinaNews",
-  avatar: "",
-  psnId: "",
-  instagram: "",
-  twitter: "",
-  bio: "",
-}
-
 // Guia de platina padrão
 const defaultPlatinaGuide: PlatinaGuide = {
-  difficulty: "medium",
+  difficulty: "3", // Changed to a valid PlatinaDifficulty value
   timeToPlat: "30-40h",
   missableTrophies: false,
   onlineRequired: false,
@@ -61,8 +51,9 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     (initialData as Review)?.additionalImages || [],
   )
 
-  const [author, setAuthor] = useState<Author>(
-    (initialData as Review)?.author || (initialData as News)?.author || { ...defaultAuthor },
+  const [authors, setAuthors] = useState<Author[]>([])
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(
+    initialData?.author_id || null, // Usar author_id do initialData
   )
 
   const [platinaGuide, setPlatinaGuide] = useState<PlatinaGuide>(
@@ -70,6 +61,14 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   )
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    async function fetchAuthors() {
+      const fetchedAuthors = await getAuthors()
+      setAuthors(fetchedAuthors)
+    }
+    fetchAuthors()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -98,7 +97,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         type,
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
-        author: author.name ? author : undefined, // Só incluir autor se tiver nome
+        author_id: selectedAuthorId, // Enviar o ID do autor selecionado
       }
 
       let data
@@ -246,11 +245,28 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             <CardHeader>
               <CardTitle>Informações do Autor</CardTitle>
               <CardDescription>
-                Adicione detalhes sobre o autor deste conteúdo. Estas informações serão exibidas na página.
+                Selecione um autor existente ou crie um novo na seção "Gerenciar Autores".
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AuthorForm author={author} onChange={setAuthor} />
+              <div className="space-y-2">
+                <Label htmlFor="author-select">Autor</Label>
+                <Select
+                  value={selectedAuthorId || ""}
+                  onValueChange={(value) => setSelectedAuthorId(value === "" ? null : value)}
+                >
+                  <SelectTrigger id="author-select">
+                    <SelectValue placeholder="Selecione um autor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {authors.map((author) => (
+                      <SelectItem key={author.id} value={author.id!}>
+                        {author.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

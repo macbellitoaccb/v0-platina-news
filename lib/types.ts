@@ -20,6 +20,8 @@ export interface Author {
   instagram?: string
   twitter?: string
   bio?: string
+  user_id?: string | null // Link para auth.users.id
+  role?: "admin" | "author" // Role do autor
   created_at?: string
   updated_at?: string
 }
@@ -59,8 +61,8 @@ export interface Post {
   type: "review" | "news" | "guide"
   created_at: string
   updated_at: string
-  author?: Author
-  author_id?: string
+  author?: Author // Para exibição (populado na busca)
+  author_id?: string | null // Para salvar (ID do autor selecionado)
 }
 
 export interface Review extends Post {
