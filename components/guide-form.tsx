@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2 } from "lucide-react"
-import type { Guide, TrophyGuideStep, PlatinaDifficulty, Author } from "@/lib/types"
+import type { Guide, TrophyGuideStep, PlatinaDifficulty } from "@/lib/types"
 import { slugify } from "@/lib/utils"
-import { getAuthors } from "@/lib/data" // Importar getAuthors
 
 interface GuideFormProps {
   initialData?: Guide
@@ -39,20 +38,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
     initialData?.steps || [{ title: "", description: "", image: "", video: "" }],
   )
 
-  const [authors, setAuthors] = useState<Author[]>([])
-  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(
-    initialData?.author_id || null, // Usar author_id do initialData
-  )
-
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  useEffect(() => {
-    async function fetchAuthors() {
-      const fetchedAuthors = await getAuthors()
-      setAuthors(fetchedAuthors)
-    }
-    fetchAuthors()
-  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -97,7 +83,6 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
         type: "guide",
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
-        author_id: selectedAuthorId, // Enviar o ID do autor selecionado
         gameName: formData.gameName,
         difficulty: formData.difficulty as PlatinaDifficulty,
         estimatedTime: formData.estimatedTime,
@@ -110,7 +95,6 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
 
       await onSubmit(data)
 
-      // Redirecionar diretamente para o painel admin após salvar
       router.push("/admin")
       router.refresh()
     } catch (error) {
@@ -122,10 +106,9 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="steps">Passos do Guia</TabsTrigger>
-          <TabsTrigger value="author">Autor</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
@@ -281,37 +264,6 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
                 <Button type="button" variant="outline" onClick={addStep} className="w-full bg-transparent">
                   <Plus className="h-4 w-4 mr-2" /> Adicionar Passo
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="author" className="pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações do Autor</CardTitle>
-              <CardDescription>
-                Selecione um autor existente ou crie um novo na seção "Gerenciar Autores".
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="author-select">Autor</Label>
-                <Select
-                  value={selectedAuthorId || ""}
-                  onValueChange={(value) => setSelectedAuthorId(value === "" ? null : value)}
-                >
-                  <SelectTrigger id="author-select">
-                    <SelectValue placeholder="Selecione um autor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id!}>
-                        {author.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </CardContent>
           </Card>

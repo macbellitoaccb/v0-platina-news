@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,11 +11,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Review, News, TrophyRating, AdditionalImage, Author, PlatinaGuide } from "@/lib/types"
+import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide } from "@/lib/types"
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
-import PlatinaGuideForm from "./platina-guide-form" // Importar PlatinaGuideForm
-import { getAuthors } from "@/lib/data" // Importar getAuthors
+import PlatinaGuideForm from "./platina-guide-form"
 
 interface PostFormProps {
   type: "review" | "news"
@@ -25,7 +24,7 @@ interface PostFormProps {
 
 // Guia de platina padrão
 const defaultPlatinaGuide: PlatinaGuide = {
-  difficulty: "3", // Changed to a valid PlatinaDifficulty value
+  difficulty: "3",
   timeToPlat: "30-40h",
   missableTrophies: false,
   onlineRequired: false,
@@ -51,24 +50,11 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     (initialData as Review)?.additionalImages || [],
   )
 
-  const [authors, setAuthors] = useState<Author[]>([])
-  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(
-    initialData?.author_id || null, // Usar author_id do initialData
-  )
-
   const [platinaGuide, setPlatinaGuide] = useState<PlatinaGuide>(
     (initialData as Review)?.platinaGuide || { ...defaultPlatinaGuide },
   )
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  useEffect(() => {
-    async function fetchAuthors() {
-      const fetchedAuthors = await getAuthors()
-      setAuthors(fetchedAuthors)
-    }
-    fetchAuthors()
-  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -97,7 +83,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         type,
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
-        author_id: selectedAuthorId, // Enviar o ID do autor selecionado
       }
 
       let data
@@ -116,7 +101,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             .map((t) => t.trim())
             .filter(Boolean),
           additionalImages: additionalImages.filter((img) => img.url.trim() !== ""),
-          platinaGuide: platinaGuide.tips ? platinaGuide : undefined, // Só incluir guia se tiver dicas
+          platinaGuide: platinaGuide.tips ? platinaGuide : undefined,
         }
       } else {
         data = baseData
@@ -124,7 +109,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
       await onSubmit(data)
 
-      // Redirecionar diretamente para o painel admin após salvar
       router.push("/admin")
       router.refresh()
     } catch (error) {
@@ -136,10 +120,9 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
-          <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
         </TabsList>
 
@@ -239,37 +222,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             </Card>
           </TabsContent>
         )}
-
-        <TabsContent value="author" className="pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações do Autor</CardTitle>
-              <CardDescription>
-                Selecione um autor existente ou crie um novo na seção "Gerenciar Autores".
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="author-select">Autor</Label>
-                <Select
-                  value={selectedAuthorId || ""}
-                  onValueChange={(value) => setSelectedAuthorId(value === "" ? null : value)}
-                >
-                  <SelectTrigger id="author-select">
-                    <SelectValue placeholder="Selecione um autor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id!}>
-                        {author.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {isReview && (
           <TabsContent value="platina" className="pt-4">

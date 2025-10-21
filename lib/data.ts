@@ -887,7 +887,7 @@ export async function getNewsById(id: string): Promise<News | null> {
     return await convertDbNewsToNews(dbNews, supabase)
   } catch (error) {
     console.error("Error fetching news by ID:", error)
-    return sampleNews.find((n) => n.id === id) || null
+    return sampleNews.find((n) => n.id === n) || null
   }
 }
 
@@ -914,7 +914,51 @@ export async function getGuideById(id: string): Promise<Guide | null> {
   }
 }
 
-// The rest of the functions (save, delete) remain the same but with better error handling
+// Function to get or create default author
+async function getOrCreateDefaultAuthor(): Promise<string | null> {
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    return null
+  }
+
+  try {
+    // Try to fetch default author "Admin"
+    const { data: existingAuthor } = await supabase.from("authors").select("id").eq("name", "Admin").single()
+
+    if (existingAuthor) {
+      return existingAuthor.id
+    }
+
+    // If default author doesn't exist, create it
+    const defaultAuthorId = uuidv4()
+    const { data: newAuthor, error } = await supabase
+      .from("authors")
+      .insert({
+        id: defaultAuthorId,
+        name: "Admin",
+        avatar: "/placeholder.svg?height=100&width=100",
+        psn_id: "PlatinaNews",
+        bio: "Equipe PlatinaNews",
+        role: "admin",
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Error creating default author:", error)
+      return null
+    }
+
+    console.log("Default author 'Admin' created successfully")
+    return newAuthor.id
+  } catch (error) {
+    console.error("Error getting/creating default author:", error)
+    return null
+  }
+}
+
+// Function to save or update a review
 export async function saveReview(review: Review): Promise<void> {
   const supabase = createSafeSupabaseClient()
 
@@ -924,7 +968,13 @@ export async function saveReview(review: Review): Promise<void> {
   }
 
   try {
-    // Preparar dados do review para o banco
+    // If author_id is not provided, use default author
+    let authorId = review.author_id
+    if (!authorId) {
+      authorId = await getOrCreateDefaultAuthor()
+    }
+
+    // Prepare data for the review to be saved in the database
     const dbReview = {
       title: review.title,
       slug: review.slug,
@@ -932,21 +982,21 @@ export async function saveReview(review: Review): Promise<void> {
       image: review.image,
       rating: review.rating,
       game_name: review.gameName,
-      author_id: review.author_id, // Usar author_id diretamente
+      author_id: authorId, // Use authorId (default or provided)
       platina_guide: review.platinaGuide,
       updated_at: new Date().toISOString(),
     }
 
-    // Se o review já existe, atualizar
+    // If the review already exists, update it
     if (review.id) {
       const { error } = await supabase.from("reviews").update(dbReview).eq("id", review.id)
 
       if (error) {
-        console.error("Erro ao atualizar review:", error)
+        console.error("Error updating review:", error)
         throw error
       }
     } else {
-      // Se não existe, criar novo com UUID válido
+      // If it doesn't exist, create a new one with a valid UUID
       const newId = uuidv4()
       const { data, error } = await supabase
         .from("reviews")
@@ -958,19 +1008,19 @@ export async function saveReview(review: Review): Promise<void> {
         .single()
 
       if (error) {
-        console.error("Erro ao criar review:", error)
+        console.error("Error creating review:", error)
         return
       }
 
       review.id = data.id
     }
 
-    // Salvar gêneros
+    // Save genres
     if (review.genres && review.genres.length > 0) {
-      // Primeiro, remover relações existentes
+      // First, remove existing relationships
       await supabase.from("review_genres").delete().eq("review_id", review.id)
 
-      // Depois, adicionar novas relações
+      // Then, add new relationships
       for (const genreName of review.genres) {
         const genreId = await saveGenre(genreName)
         if (genreId) {
@@ -982,12 +1032,12 @@ export async function saveReview(review: Review): Promise<void> {
       }
     }
 
-    // Salvar tags
+    // Save tags
     if (review.tags && review.tags.length > 0) {
-      // Primeiro, remover relações existentes
+      // First, remove existing relationships
       await supabase.from("review_tags").delete().eq("review_id", review.id)
 
-      // Depois, adicionar novas relações
+      // Then, add new relationships
       for (const tagName of review.tags) {
         const tagId = await saveTag(tagName)
         if (tagId) {
@@ -999,12 +1049,12 @@ export async function saveReview(review: Review): Promise<void> {
       }
     }
 
-    // Salvar imagens adicionais
+    // Save additional images
     if (review.additionalImages && review.additionalImages.length > 0) {
-      // Primeiro, remover imagens existentes
+      // First, remove existing images
       await supabase.from("additional_images").delete().eq("review_id", review.id)
 
-      // Depois, adicionar novas imagens
+      // Then, add new images
       for (let i = 0; i < review.additionalImages.length; i++) {
         const image = review.additionalImages[i]
         await supabase.from("additional_images").insert({
@@ -1022,6 +1072,7 @@ export async function saveReview(review: Review): Promise<void> {
   }
 }
 
+// Function to save or update news
 export async function saveNews(news: News): Promise<void> {
   const supabase = createSafeSupabaseClient()
 
@@ -1031,26 +1082,32 @@ export async function saveNews(news: News): Promise<void> {
   }
 
   try {
-    // Preparar dados da notícia para o banco
+    // If author_id is not provided, use default author
+    let authorId = news.author_id
+    if (!authorId) {
+      authorId = await getOrCreateDefaultAuthor()
+    }
+
+    // Prepare data for the news to be saved in the database
     const dbNews = {
       title: news.title,
       slug: news.slug,
       content: news.content,
       image: news.image,
-      author_id: news.author_id, // Usar author_id diretamente
+      author_id: authorId, // Use authorId (default or provided)
       updated_at: new Date().toISOString(),
     }
 
-    // Se a notícia já existe, atualizar
+    // If the news already exists, update it
     if (news.id) {
       const { error } = await supabase.from("news").update(dbNews).eq("id", news.id)
 
       if (error) {
-        console.error("Erro ao atualizar notícia:", error)
+        console.error("Error updating news:", error)
         return
       }
     } else {
-      // Se não existe, criar nova com UUID válido
+      // If it doesn't exist, create a new one with a valid UUID
       const newId = uuidv4()
       const { data, error } = await supabase
         .from("news")
@@ -1062,7 +1119,7 @@ export async function saveNews(news: News): Promise<void> {
         .single()
 
       if (error) {
-        console.error("Erro ao criar notícia:", error)
+        console.error("Error creating news:", error)
         return
       }
 
@@ -1075,6 +1132,7 @@ export async function saveNews(news: News): Promise<void> {
   }
 }
 
+// Function to save or update a guide
 export async function saveGuide(guide: Guide): Promise<void> {
   const supabase = createSafeSupabaseClient()
 
@@ -1084,7 +1142,13 @@ export async function saveGuide(guide: Guide): Promise<void> {
   }
 
   try {
-    // Preparar dados do guia para o banco
+    // If author_id is not provided, use default author
+    let authorId = guide.author_id
+    if (!authorId) {
+      authorId = await getOrCreateDefaultAuthor()
+    }
+
+    // Prepare data for the guide to be saved in the database
     const dbGuide = {
       title: guide.title,
       slug: guide.slug,
@@ -1093,20 +1157,20 @@ export async function saveGuide(guide: Guide): Promise<void> {
       game_name: guide.gameName,
       difficulty: guide.difficulty,
       estimated_time: guide.estimatedTime,
-      author_id: guide.author_id, // Usar author_id diretamente
+      author_id: authorId, // Use authorId (default or provided)
       updated_at: new Date().toISOString(),
     }
 
-    // Se o guia já existe, atualizar
+    // If the guide already exists, update it
     if (guide.id) {
       const { error } = await supabase.from("guides").update(dbGuide).eq("id", guide.id)
 
       if (error) {
-        console.error("Erro ao atualizar guia:", error)
+        console.error("Error updating guide:", error)
         return
       }
     } else {
-      // Se não existe, criar novo com UUID válido
+      // If it doesn't exist, create a new one with a valid UUID
       const newId = uuidv4()
       const { data, error } = await supabase
         .from("guides")
@@ -1118,19 +1182,19 @@ export async function saveGuide(guide: Guide): Promise<void> {
         .single()
 
       if (error) {
-        console.error("Erro ao criar guia:", error)
+        console.error("Error creating guide:", error)
         return
       }
 
       guide.id = data.id
     }
 
-    // Salvar tags
+    // Save tags
     if (guide.tags && guide.tags.length > 0) {
-      // Primeiro, remover relações existentes
+      // First, remove existing relationships
       await supabase.from("guide_tags").delete().eq("guide_id", guide.id)
 
-      // Depois, adicionar novas relações
+      // Then, add new relationships
       for (const tagName of guide.tags) {
         const tagId = await saveTag(tagName)
         if (tagId) {
@@ -1142,12 +1206,12 @@ export async function saveGuide(guide: Guide): Promise<void> {
       }
     }
 
-    // Salvar passos do guia
+    // Save guide steps
     if (guide.steps && guide.steps.length > 0) {
-      // Primeiro, remover passos existentes
+      // First, remove existing steps
       await supabase.from("guide_steps").delete().eq("guide_id", guide.id)
 
-      // Depois, adicionar novos passos
+      // Then, add new steps
       for (let i = 0; i < guide.steps.length; i++) {
         const step = guide.steps[i]
         await supabase.from("guide_steps").insert({
@@ -1227,9 +1291,9 @@ export async function deleteAuthor(id: string): Promise<void> {
   }
 
   try {
-    // Antes de deletar o autor, você pode querer reatribuir posts ou definir author_id como NULL
-    // Por simplicidade, aqui apenas deletamos o autor.
-    // Em um sistema real, você teria uma política de integridade referencial.
+    // Before deleting the author, you might want to reassign posts or set author_id to NULL
+    // For simplicity, here we just delete the author.
+    // In a real system, you would have a referential integrity policy.
     const { error } = await supabase.from("authors").delete().eq("id", id)
     if (error) throw error
     console.log(`Author with ID ${id} deleted successfully.`)
