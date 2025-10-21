@@ -540,27 +540,12 @@ export async function getReviews(): Promise<Review[]> {
   try {
     console.log("Attempting to fetch reviews from Supabase...")
 
-    // Test connection first
-    const { data: testData, error: testError } = await supabase
-      .from("reviews")
-      .select("count", { count: "exact", head: true })
+    const dbReviews = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase.from("reviews").select("*").order("created_at", { ascending: false })
 
-    if (testError) {
-      console.error("Supabase connection test failed:", testError)
-      console.log("Falling back to mock data for reviews")
-      return sampleReviews
-    }
-
-    const { data: dbReviews, error } = await supabase
-      .from("reviews")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Supabase error fetching reviews:", error)
-      console.log("Falling back to mock data for reviews")
-      return sampleReviews
-    }
+      if (error) throw error
+      return data
+    }, "Fetch Reviews")
 
     if (!dbReviews || dbReviews.length === 0) {
       console.log("No reviews found in database, using mock data")
@@ -575,7 +560,6 @@ export async function getReviews(): Promise<Review[]> {
           return await convertDbReviewToReview(dbReview, supabase)
         } catch (conversionError) {
           console.warn("Error converting review:", conversionError)
-          // Return a basic review if conversion fails
           return {
             id: dbReview.id,
             title: dbReview.title,
@@ -589,7 +573,7 @@ export async function getReviews(): Promise<Review[]> {
             gameName: dbReview.game_name,
             genres: [],
             tags: [],
-            author_id: dbReview.author_id, // Incluir author_id
+            author_id: dbReview.author_id,
             platinaGuide: dbReview.platina_guide,
             additionalImages: [],
           }
@@ -600,7 +584,7 @@ export async function getReviews(): Promise<Review[]> {
     console.log("Successfully converted reviews")
     return reviews
   } catch (error) {
-    console.error("Unexpected error fetching reviews:", error)
+    console.error("Supabase error fetching reviews:", error)
     console.log("Falling back to mock data for reviews")
     return sampleReviews
   }
@@ -620,24 +604,12 @@ export async function getNews(): Promise<News[]> {
   try {
     console.log("Attempting to fetch news from Supabase...")
 
-    // Test connection first
-    const { data: testData, error: testError } = await supabase
-      .from("news")
-      .select("count", { count: "exact", head: true })
+    const dbNews = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase.from("news").select("*").order("created_at", { ascending: false })
 
-    if (testError) {
-      console.error("Supabase connection test failed:", testError)
-      console.log("Falling back to mock data for news")
-      return sampleNews
-    }
-
-    const { data: dbNews, error } = await supabase.from("news").select("*").order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Supabase error fetching news:", error)
-      console.log("Falling back to mock data for news")
-      return sampleNews
-    }
+      if (error) throw error
+      return data
+    }, "Fetch News")
 
     if (!dbNews || dbNews.length === 0) {
       console.log("No news found in database, using mock data")
@@ -652,7 +624,6 @@ export async function getNews(): Promise<News[]> {
           return await convertDbNewsToNews(dbNewsItem, supabase)
         } catch (conversionError) {
           console.warn("Error converting news:", conversionError)
-          // Return a basic news item if conversion fails
           return {
             id: dbNewsItem.id,
             title: dbNewsItem.title,
@@ -662,7 +633,7 @@ export async function getNews(): Promise<News[]> {
             type: "news" as const,
             createdAt: dbNewsItem.created_at,
             updatedAt: dbNewsItem.updated_at,
-            author_id: dbNewsItem.author_id, // Incluir author_id
+            author_id: dbNewsItem.author_id,
           }
         }
       }),
@@ -671,7 +642,7 @@ export async function getNews(): Promise<News[]> {
     console.log("Successfully converted news")
     return news
   } catch (error) {
-    console.error("Unexpected error fetching news:", error)
+    console.error("Supabase error fetching news:", error)
     console.log("Falling back to mock data for news")
     return sampleNews
   }
@@ -691,27 +662,12 @@ export async function getGuides(): Promise<Guide[]> {
   try {
     console.log("Attempting to fetch guides from Supabase...")
 
-    // Test connection first
-    const { data: testData, error: testError } = await supabase
-      .from("guides")
-      .select("count", { count: "exact", head: true })
+    const dbGuides = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase.from("guides").select("*").order("created_at", { ascending: false })
 
-    if (testError) {
-      console.error("Supabase connection test failed:", testError)
-      console.log("Falling back to mock data for guides")
-      return [sampleGuide]
-    }
-
-    const { data: dbGuides, error } = await supabase
-      .from("guides")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Supabase error fetching guides:", error)
-      console.log("Falling back to mock data for guides")
-      return [sampleGuide]
-    }
+      if (error) throw error
+      return data
+    }, "Fetch Guides")
 
     if (!dbGuides || dbGuides.length === 0) {
       console.log("No guides found in database, using mock data")
@@ -726,7 +682,6 @@ export async function getGuides(): Promise<Guide[]> {
           return await convertDbGuideToGuide(dbGuide, supabase)
         } catch (conversionError) {
           console.warn("Error converting guide:", conversionError)
-          // Return a basic guide if conversion fails
           return {
             id: dbGuide.id,
             title: dbGuide.title,
@@ -739,7 +694,7 @@ export async function getGuides(): Promise<Guide[]> {
             gameName: dbGuide.game_name,
             difficulty: dbGuide.difficulty,
             estimatedTime: dbGuide.estimated_time,
-            author_id: dbGuide.author_id, // Incluir author_id
+            author_id: dbGuide.author_id,
             tags: [],
             steps: [],
           }
@@ -750,7 +705,7 @@ export async function getGuides(): Promise<Guide[]> {
     console.log("Successfully converted guides")
     return guides
   } catch (error) {
-    console.error("Unexpected error fetching guides:", error)
+    console.error("Supabase error fetching guides:", error)
     console.log("Falling back to mock data for guides")
     return [sampleGuide]
   }
@@ -785,13 +740,19 @@ export async function getReviewBySlug(slug: string): Promise<Review | null> {
   }
 
   try {
-    const { data: dbReview, error } = await supabase.from("reviews").select("*").eq("slug", slug).single()
+    const { data: dbReviews, error } = await supabase.from("reviews").select("*").eq("slug", slug)
 
-    if (error || !dbReview) {
+    if (error) {
       console.error("Error fetching review by slug from Supabase:", error)
       return sampleReviews.find((r) => r.slug === slug) || null
     }
 
+    if (!dbReviews || dbReviews.length === 0) {
+      console.log(`Review with slug "${slug}" not found`)
+      return sampleReviews.find((r) => r.slug === slug) || null
+    }
+
+    const dbReview = dbReviews[0]
     return await convertDbReviewToReview(dbReview, supabase)
   } catch (error) {
     console.error("Error fetching review by slug:", error)
@@ -808,13 +769,19 @@ export async function getNewsBySlug(slug: string): Promise<News | null> {
   }
 
   try {
-    const { data: dbNews, error } = await supabase.from("news").select("*").eq("slug", slug).single()
+    const { data: dbNewsArray, error } = await supabase.from("news").select("*").eq("slug", slug)
 
-    if (error || !dbNews) {
+    if (error) {
       console.error("Error fetching news by slug from Supabase:", error)
       return sampleNews.find((n) => n.slug === slug) || null
     }
 
+    if (!dbNewsArray || dbNewsArray.length === 0) {
+      console.log(`News with slug "${slug}" not found`)
+      return sampleNews.find((n) => n.slug === slug) || null
+    }
+
+    const dbNews = dbNewsArray[0]
     return await convertDbNewsToNews(dbNews, supabase)
   } catch (error) {
     console.error("Error fetching news by slug:", error)
@@ -831,13 +798,19 @@ export async function getGuideBySlug(slug: string): Promise<Guide | null> {
   }
 
   try {
-    const { data: dbGuide, error } = await supabase.from("guides").select("*").eq("slug", slug).single()
+    const { data: dbGuides, error } = await supabase.from("guides").select("*").eq("slug", slug)
 
-    if (error || !dbGuide) {
+    if (error) {
       console.error("Error fetching guide by slug from Supabase:", error)
       return sampleGuide.slug === slug ? sampleGuide : null
     }
 
+    if (!dbGuides || dbGuides.length === 0) {
+      console.log(`Guide with slug "${slug}" not found`)
+      return sampleGuide.slug === slug ? sampleGuide : null
+    }
+
+    const dbGuide = dbGuides[0]
     return await convertDbGuideToGuide(dbGuide, supabase)
   } catch (error) {
     console.error("Error fetching guide by slug:", error)
@@ -887,7 +860,7 @@ export async function getNewsById(id: string): Promise<News | null> {
     return await convertDbNewsToNews(dbNews, supabase)
   } catch (error) {
     console.error("Error fetching news by ID:", error)
-    return sampleNews.find((n) => n.id === n) || null
+    return sampleNews.find((n) => n.id === id) || null
   }
 }
 
