@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2 } from "lucide-react"
-import type { Guide, TrophyGuideStep, PlatinaDifficulty } from "@/lib/types"
+import type { Guide, TrophyGuideStep, PlatinaDifficulty, Author } from "@/lib/types"
 import { slugify } from "@/lib/utils"
 
 interface GuideFormProps {
@@ -32,13 +32,40 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
     difficulty: initialData?.difficulty || ("3" as PlatinaDifficulty),
     estimatedTime: initialData?.estimatedTime || "",
     tags: initialData?.tags?.join(", ") || "",
+    author_id: initialData?.author_id || "",
   })
 
   const [steps, setSteps] = useState<TrophyGuideStep[]>(
     initialData?.steps || [{ title: "", description: "", image: "", video: "" }],
   )
 
+  const [authors, setAuthors] = useState<Author[]>([])
+  const [loadingAuthors, setLoadingAuthors] = useState(true)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    async function fetchAuthors() {
+      try {
+        setLoadingAuthors(true)
+        const response = await fetch("/api/authors")
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch authors")
+        }
+
+        const data = await response.json()
+        setAuthors(data)
+      } catch (error) {
+        console.error("Error fetching authors:", error)
+        setAuthors([])
+      } finally {
+        setLoadingAuthors(false)
+      }
+    }
+
+    fetchAuthors()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -91,6 +118,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        author_id: formData.author_id || undefined, // Include author_id
       }
 
       await onSubmit(data)
@@ -99,6 +127,7 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
       router.refresh()
     } catch (error) {
       console.error("Erro ao salvar:", error)
+      alert("Erro ao salvar. Por favor, tente novamente.")
       setIsSubmitting(false)
     }
   }
@@ -106,8 +135,9 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+          <TabsTrigger value="author">Autor</TabsTrigger>
           <TabsTrigger value="steps">Passos do Guia</TabsTrigger>
         </TabsList>
 
@@ -188,6 +218,43 @@ export default function GuideForm({ initialData, onSubmit }: GuideFormProps) {
               required
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="author" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Autor</CardTitle>
+              <CardDescription>
+                Selecione o autor deste guia. Se não selecionar, será usado o autor padrão "Admin".
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="author_id">Autor</Label>
+                {loadingAuthors ? (
+                  <p className="text-sm text-muted-foreground">Carregando autores...</p>
+                ) : authors.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum autor encontrado. Será usado o autor padrão "Admin".
+                  </p>
+                ) : (
+                  <Select value={formData.author_id} onValueChange={(value) => handleSelectChange("author_id", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um autor (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Usar autor padrão (Admin)</SelectItem>
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="steps" className="pt-4">

@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "./supabase"
 import type { Review, News, Guide, AllPosts, Author, DbReview, DbNews, DbGuide } from "./types"
 import { v4 as uuidv4 } from "uuid"
+import { retrySupabaseOperation } from "./supabase-helpers"
 // Mock data imports
 import { sampleReviews, sampleNews, sampleGuide } from "./seed-data"
 
@@ -355,12 +356,11 @@ export async function getAuthors(): Promise<Author[]> {
   }
 
   try {
-    const { data: dbAuthors, error } = await supabase.from("authors").select("*").order("name", { ascending: true })
-
-    if (error) {
-      console.error("Supabase error fetching authors:", error)
-      return []
-    }
+    const dbAuthors = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase.from("authors").select("*").order("name", { ascending: true })
+      if (error) throw error
+      return data
+    }, "Fetch Authors")
 
     if (!dbAuthors || dbAuthors.length === 0) {
       console.log("No authors found in database.")
@@ -383,7 +383,7 @@ export async function getAuthors(): Promise<Author[]> {
       updated_at: dbAuthor.updated_at,
     }))
   } catch (error) {
-    console.error("Unexpected error fetching authors:", error)
+    console.error("Error fetching authors:", error)
     return []
   }
 }
@@ -1236,15 +1236,19 @@ export async function deleteReview(id: string): Promise<void> {
 
   if (!supabase) {
     console.log("Supabase not available, cannot delete review")
-    return
+    throw new Error("Banco de dados não disponível")
   }
 
   try {
-    const { error } = await supabase.from("reviews").delete().eq("id", id)
-    if (error) throw error
+    await retrySupabaseOperation(async () => {
+      const { error } = await supabase.from("reviews").delete().eq("id", id)
+      if (error) throw error
+      return true
+    }, `Delete Review ${id}`)
+    console.log(`Review ${id} deleted successfully`)
   } catch (error) {
     console.error("Error deleting review:", error)
-    throw error
+    throw new Error("Erro ao excluir review. Tente novamente.")
   }
 }
 
@@ -1253,15 +1257,19 @@ export async function deleteNews(id: string): Promise<void> {
 
   if (!supabase) {
     console.log("Supabase not available, cannot delete news")
-    return
+    throw new Error("Banco de dados não disponível")
   }
 
   try {
-    const { error } = await supabase.from("news").delete().eq("id", id)
-    if (error) throw error
+    await retrySupabaseOperation(async () => {
+      const { error } = await supabase.from("news").delete().eq("id", id)
+      if (error) throw error
+      return true
+    }, `Delete News ${id}`)
+    console.log(`News ${id} deleted successfully`)
   } catch (error) {
     console.error("Error deleting news:", error)
-    throw error
+    throw new Error("Erro ao excluir notícia. Tente novamente.")
   }
 }
 
@@ -1270,15 +1278,19 @@ export async function deleteGuide(id: string): Promise<void> {
 
   if (!supabase) {
     console.log("Supabase not available, cannot delete guide")
-    return
+    throw new Error("Banco de dados não disponível")
   }
 
   try {
-    const { error } = await supabase.from("guides").delete().eq("id", id)
-    if (error) throw error
+    await retrySupabaseOperation(async () => {
+      const { error } = await supabase.from("guides").delete().eq("id", id)
+      if (error) throw error
+      return true
+    }, `Delete Guide ${id}`)
+    console.log(`Guide ${id} deleted successfully`)
   } catch (error) {
     console.error("Error deleting guide:", error)
-    throw error
+    throw new Error("Erro ao excluir guia. Tente novamente.")
   }
 }
 

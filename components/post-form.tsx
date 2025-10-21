@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide } from "@/lib/types"
+import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide, Author } from "@/lib/types"
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
 import PlatinaGuideForm from "./platina-guide-form"
@@ -44,6 +44,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     gameName: (initialData as Review)?.gameName || "",
     genres: (initialData as Review)?.genres?.join(", ") || "",
     tags: (initialData as Review)?.tags?.join(", ") || "",
+    author_id: initialData?.author_id || "",
   })
 
   const [additionalImages, setAdditionalImages] = useState<AdditionalImage[]>(
@@ -54,7 +55,34 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     (initialData as Review)?.platinaGuide || { ...defaultPlatinaGuide },
   )
 
+  const [authors, setAuthors] = useState<Author[]>([])
+  const [loadingAuthors, setLoadingAuthors] = useState(true)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    async function fetchAuthors() {
+      try {
+        setLoadingAuthors(true)
+        const response = await fetch("/api/authors")
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch authors")
+        }
+
+        const data = await response.json()
+        setAuthors(data)
+      } catch (error) {
+        console.error("Error fetching authors:", error)
+        // Keep empty array on error - will use default author
+        setAuthors([])
+      } finally {
+        setLoadingAuthors(false)
+      }
+    }
+
+    fetchAuthors()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -83,6 +111,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         type,
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
+        author_id: formData.author_id || undefined, // Include author_id
       }
 
       let data
@@ -113,6 +142,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
       router.refresh()
     } catch (error) {
       console.error("Erro ao salvar:", error)
+      alert("Erro ao salvar. Por favor, tente novamente.")
       setIsSubmitting(false)
     }
   }
@@ -120,8 +150,9 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+          <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
         </TabsList>
@@ -205,6 +236,43 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             <Label htmlFor="content">Conteúdo</Label>
             <Textarea id="content" name="content" value={formData.content} onChange={handleChange} rows={10} required />
           </div>
+        </TabsContent>
+
+        <TabsContent value="author" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Autor</CardTitle>
+              <CardDescription>
+                Selecione o autor deste post. Se não selecionar, será usado o autor padrão "Admin".
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="author_id">Autor</Label>
+                {loadingAuthors ? (
+                  <p className="text-sm text-muted-foreground">Carregando autores...</p>
+                ) : authors.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum autor encontrado. Será usado o autor padrão "Admin".
+                  </p>
+                ) : (
+                  <Select value={formData.author_id} onValueChange={(value) => handleSelectChange("author_id", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um autor (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Usar autor padrão (Admin)</SelectItem>
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {isReview && (
