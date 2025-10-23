@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Author } from "@/lib/types"
 
 interface AuthorManagementFormProps {
-  initialData?: Author & { email?: string; password?: string } // Add email and password for creation
-  onSubmit: (data: Author & { email?: string; password?: string }) => Promise<void>
+  initialData?: Author // Remove email and password for creation
+  onSubmit: (data: Author) => Promise<void>
   isNewAuthor?: boolean // Flag to indicate if it's a new author creation
 }
 
@@ -24,7 +24,7 @@ export default function AuthorManagementForm({
   const router = useRouter()
   const isEditing = !!initialData && !isNewAuthor // Only true if editing an existing author, not creating a new one
 
-  const [formData, setFormData] = useState<Author & { email?: string; password?: string }>(
+  const [formData, setFormData] = useState<Author>(
     initialData || {
       name: "",
       avatar: "",
@@ -32,12 +32,9 @@ export default function AuthorManagementForm({
       instagram: "",
       twitter: "",
       bio: "",
-      email: "", // For new author creation
-      password: "", // For new author creation
-      role: "author", // Default role for new authors
+      role: "author",
     },
   )
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -61,6 +58,8 @@ export default function AuthorManagementForm({
       setIsSubmitting(false)
     }
   }
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -88,35 +87,6 @@ export default function AuthorManagementForm({
           />
         </div>
       </div>
-
-      {isNewAuthor && ( // Only show email/password for new author creation
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email (Login)</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email || ""}
-              onChange={handleChange}
-              placeholder="email@exemplo.com"
-              required={isNewAuthor}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha (Login)</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password || ""}
-              onChange={handleChange}
-              placeholder="********"
-              required={isNewAuthor}
-            />
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-2">
@@ -153,7 +123,7 @@ export default function AuthorManagementForm({
         </div>
       </div>
 
-      {isNewAuthor && ( // Only show role selection for new author creation
+      {isNewAuthor && (
         <div className="space-y-2">
           <Label htmlFor="role">Função</Label>
           <Select value={formData.role} onValueChange={handleRoleChange}>

@@ -92,30 +92,10 @@ export async function removeGuide(id: string) {
 }
 
 // --- Author Management Actions ---
-export async function createAuthor(data: Author & { email: string; password: string }) {
-  const supabase = createServerSupabaseClient()
-  if (!supabase) {
-    throw new Error("Supabase client not available.")
-  }
-
-  // 1. Create user in Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: data.email,
-    password: data.password,
-    email_confirm: true, // Auto-confirm email for admin created users
-  })
-
-  if (authError) {
-    console.error("Error creating auth user:", authError.message)
-    throw new Error(`Erro ao criar usuário de autenticação: ${authError.message}`)
-  }
-
-  const userId = authData.user.id
-
-  // 2. Save author profile linked to the new user_id
+export async function createAuthor(data: Author) {
+  // Simplesmente salva o autor sem criar usuário de autenticação
   const authorToSave: Author = {
     ...data,
-    user_id: userId,
     role: data.role || "author", // Default to 'author' if not specified
   }
   return saveAuthor(authorToSave)

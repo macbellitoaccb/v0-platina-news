@@ -1,11 +1,11 @@
 import Link from "next/link"
-import { GamepadIcon as GameController, Twitter, Instagram, Youtube, Twitch } from "lucide-react"
+import { PaintRoller as GameController, Twitter, Instagram, Youtube, Twitch } from "lucide-react"
 
 export default function Footer() {
   return (
     <footer className="w-full border-t bg-background">
       <div className="container mx-auto py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
               <GameController className="h-6 w-6 text-primary" />
@@ -57,42 +57,6 @@ export default function Footer() {
               <li>
                 <Link href="/guias" className="text-muted-foreground hover:text-primary">
                   Guias de Platina
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="text-muted-foreground hover:text-primary">
-                  Admin
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Plataformas</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                  PlayStation 5
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                  Xbox Series X|S
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                  Nintendo Switch
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                  PC
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                  Mobile
                 </Link>
               </li>
             </ul>
