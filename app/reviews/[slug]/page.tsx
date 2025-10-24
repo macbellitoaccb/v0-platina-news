@@ -103,13 +103,6 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             </div>
           </div>
 
-          {review.youtubeUrl && (
-            <div className="my-8">
-              <h3 className="text-lg font-semibold mb-4">Vídeo</h3>
-              <YouTubeEmbed url={review.youtubeUrl} title={`Vídeo sobre ${review.gameName}`} />
-            </div>
-          )}
-
           <div className="prose prose-invert max-w-none">
             {paragraphs.map((paragraph, index) => (
               <p key={index} className="mb-4">
@@ -130,6 +123,14 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
                   </figcaption>
                 </figure>
               ))}
+            </div>
+          )}
+
+          {/* Vídeo */}
+          {review.youtubeUrl && (
+            <div className="my-8">
+              <h3 className="text-lg font-semibold mb-4">Vídeo</h3>
+              <YouTubeEmbed url={review.youtubeUrl} title={`Vídeo sobre ${review.gameName}`} />
             </div>
           )}
 
