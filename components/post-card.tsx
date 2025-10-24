@@ -29,15 +29,7 @@ export default function PostCard({ post }: PostCardProps) {
               <TrophyIcon rating={(post as any).rating} size="md" showLabel showDescription vertical />
             </div>
           )}
-          <div className="absolute top-0 left-0 m-3">
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded ${
-                isReview ? "bg-purple-600" : isGuide ? "bg-green-600" : "bg-blue-600"
-              }`}
-            >
-              {isReview ? "REVIEW" : isGuide ? "GUIA DE PLATINA" : "NOTÍCIA"}
-            </span>
-          </div>
+          {/* Badge de tipo (REVIEW, GUIA, NOTÍCIA) removido */}
         </div>
         <div className="p-4">
           <h3 className="magazine-title text-lg line-clamp-2">{isReview ? (post as any).gameName : post.title}</h3>

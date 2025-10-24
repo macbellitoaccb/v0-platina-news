@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import ReviewCard from "@/components/review-card"
 import AuthorCard from "@/components/author-card"
 import PlatinaGuide from "@/components/platina-guide"
-import ProsConsDisplay from "@/components/pros-cons-display"
+import YouTubeEmbed from "@/components/youtube-embed"
 
 interface ReviewPageProps {
   params: {
@@ -103,6 +103,13 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             </div>
           </div>
 
+          {review.youtubeUrl && (
+            <div className="my-8">
+              <h3 className="text-lg font-semibold mb-4">Vídeo</h3>
+              <YouTubeEmbed url={review.youtubeUrl} title={`Vídeo sobre ${review.gameName}`} />
+            </div>
+          )}
+
           <div className="prose prose-invert max-w-none">
             {paragraphs.map((paragraph, index) => (
               <p key={index} className="mb-4">
@@ -110,8 +117,6 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               </p>
             ))}
           </div>
-
-          <ProsConsDisplay pros={review.pros} cons={review.cons} rating={review.rating} />
 
           {hasAdditionalImages && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">

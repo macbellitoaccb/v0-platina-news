@@ -15,7 +15,7 @@ import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide, Author 
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
 import PlatinaGuideForm from "./platina-guide-form"
-import ProsConsForm from "./pros-cons-form"
+import ImageUpload from "./image-upload"
 
 interface PostFormProps {
   type: "review" | "news"
@@ -46,6 +46,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     genres: (initialData as Review)?.genres?.join(", ") || "",
     tags: (initialData as Review)?.tags?.join(", ") || "",
     author_id: initialData?.author_id || "",
+    youtubeUrl: initialData?.youtubeUrl || "",
   })
 
   const [additionalImages, setAdditionalImages] = useState<AdditionalImage[]>(
@@ -58,9 +59,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
   const [authors, setAuthors] = useState<Author[]>([])
   const [loadingAuthors, setLoadingAuthors] = useState(true)
-
-  const [pros, setPros] = useState<string[]>((initialData as Review)?.pros || [])
-  const [cons, setCons] = useState<string[]>((initialData as Review)?.cons || [])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -97,6 +95,10 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleImageChange = (url: string) => {
+    setFormData((prev) => ({ ...prev, image: url }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -115,7 +117,8 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         type,
         createdAt: initialData?.createdAt || now,
         updatedAt: now,
-        author_id: formData.author_id || undefined, // Include author_id
+        author_id: formData.author_id || undefined,
+        youtubeUrl: formData.youtubeUrl || undefined,
       }
 
       let data
@@ -135,8 +138,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             .filter(Boolean),
           additionalImages: additionalImages.filter((img) => img.url.trim() !== ""),
           platinaGuide: platinaGuide.tips ? platinaGuide : undefined,
-          pros: pros.filter((p) => p.trim() !== ""),
-          cons: cons.filter((c) => c.trim() !== ""),
         }
       } else {
         data = baseData
@@ -156,31 +157,26 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2"}`}>
+        <TabsList className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2"}`}>
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="author">Autor</TabsTrigger>
-          {isReview && <TabsTrigger value="proscons">Prós e Contras</TabsTrigger>}
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title">Título</Label>
               <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image">URL da Imagem Principal</Label>
-              <Input
-                id="image"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
-            </div>
+            <ImageUpload
+              value={formData.image}
+              onChange={handleImageChange}
+              label="Imagem Principal"
+              description="Faça upload de uma imagem ou cole a URL"
+            />
           </div>
 
           {isReview && (
@@ -240,6 +236,20 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           )}
 
           <div className="space-y-2">
+            <Label htmlFor="youtubeUrl">Vídeo do YouTube (opcional)</Label>
+            <Input
+              id="youtubeUrl"
+              name="youtubeUrl"
+              value={formData.youtubeUrl}
+              onChange={handleChange}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Cole a URL completa do vídeo do YouTube para incorporá-lo no post
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="content">Conteúdo</Label>
             <Textarea id="content" name="content" value={formData.content} onChange={handleChange} rows={10} required />
           </div>
@@ -281,29 +291,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             </CardContent>
           </Card>
         </TabsContent>
-
-        {isReview && (
-          <TabsContent value="proscons" className="pt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Prós e Contras</CardTitle>
-                <CardDescription>
-                  Liste os pontos positivos e negativos do jogo, como em uma revista de games.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProsConsForm
-                  pros={pros}
-                  cons={cons}
-                  onChange={(newPros, newCons) => {
-                    setPros(newPros)
-                    setCons(newCons)
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
 
         {isReview && (
           <TabsContent value="images" className="pt-4">

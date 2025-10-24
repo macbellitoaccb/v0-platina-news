@@ -63,6 +63,7 @@ export interface Post {
   updated_at: string
   author?: Author // Para exibição (populado na busca)
   author_id?: string | null // Para salvar (ID do autor selecionado)
+  youtubeUrl?: string
 }
 
 export interface Review extends Post {
@@ -73,8 +74,6 @@ export interface Review extends Post {
   tags: string[]
   platinaGuide?: PlatinaGuide
   additionalImages?: AdditionalImage[]
-  pros?: string[]
-  cons?: string[]
 }
 
 export interface News extends Post {
@@ -105,8 +104,7 @@ export interface DbReview {
   game_name: string
   author_id?: string
   platina_guide?: PlatinaGuide
-  pros?: string[]
-  cons?: string[]
+  youtube_url?: string
 }
 
 export interface DbNews {
@@ -118,6 +116,7 @@ export interface DbNews {
   created_at: string
   updated_at: string
   author_id?: string
+  youtube_url?: string
 }
 
 export interface DbGuide {
