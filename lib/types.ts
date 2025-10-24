@@ -73,6 +73,8 @@ export interface Review extends Post {
   tags: string[]
   platinaGuide?: PlatinaGuide
   additionalImages?: AdditionalImage[]
+  pros?: string[]
+  cons?: string[]
 }
 
 export interface News extends Post {
@@ -103,6 +105,8 @@ export interface DbReview {
   game_name: string
   author_id?: string
   platina_guide?: PlatinaGuide
+  pros?: string[]
+  cons?: string[]
 }
 
 export interface DbNews {

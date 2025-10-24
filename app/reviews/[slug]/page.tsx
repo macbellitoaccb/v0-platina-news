@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import ReviewCard from "@/components/review-card"
 import AuthorCard from "@/components/author-card"
 import PlatinaGuide from "@/components/platina-guide"
+import ProsConsDisplay from "@/components/pros-cons-display"
 
 interface ReviewPageProps {
   params: {
@@ -109,60 +110,62 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
               </p>
             ))}
           </div>
-        </div>
 
-        {hasAdditionalImages && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-            {review.additionalImages!.map((image, index) => (
-              <figure key={`img-${index}`} className="my-4">
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg">
-                  <Image src={image.url || "/placeholder.svg"} alt={image.caption} fill className="object-cover" />
-                </div>
-                <figcaption className="mt-2 text-center text-sm text-muted-foreground italic">
-                  {image.caption}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        )}
+          <ProsConsDisplay pros={review.pros} cons={review.cons} rating={review.rating} />
 
-        {review.tags.length > 0 && (
-          <div className="mt-8 pt-4 border-t border-border/50">
-            <h3 className="text-sm font-medium mb-2">Tags:</h3>
-            <div className="flex flex-wrap gap-2">
-              {review.tags.map((tag) => (
-                <span key={tag} className="game-tag">
-                  {tag}
-                </span>
+          {hasAdditionalImages && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+              {review.additionalImages!.map((image, index) => (
+                <figure key={`img-${index}`} className="my-4">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                    <Image src={image.url || "/placeholder.svg"} alt={image.caption} fill className="object-cover" />
+                  </div>
+                  <figcaption className="mt-2 text-center text-sm text-muted-foreground italic">
+                    {image.caption}
+                  </figcaption>
+                </figure>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Ficha técnica */}
-        <div className="mt-12 pt-6 border-t border-border/50 space-y-6">
-          <h2 className="text-2xl font-bold">Ficha Técnica</h2>
-
-          {/* Autor do review */}
-          {review.author && (
-            <div>
-              <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Autor</h3>
-              <AuthorCard author={review.author} />
+          {review.tags.length > 0 && (
+            <div className="mt-8 pt-4 border-t border-border/50">
+              <h3 className="text-sm font-medium mb-2">Tags:</h3>
+              <div className="flex flex-wrap gap-2">
+                {review.tags.map((tag) => (
+                  <span key={tag} className="game-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      </article>
 
-      {relatedReviews.length > 0 && (
-        <section className="mt-16 pt-8 border-t border-border/50">
-          <h2 className="text-2xl font-bold mb-6">Reviews Relacionadas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedReviews.map((relatedReview) => (
-              <ReviewCard key={relatedReview.id} review={relatedReview} />
-            ))}
+          {/* Ficha técnica */}
+          <div className="mt-12 pt-6 border-t border-border/50 space-y-6">
+            <h2 className="text-2xl font-bold">Ficha Técnica</h2>
+
+            {/* Autor do review */}
+            {review.author && (
+              <div>
+                <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Autor</h3>
+                <AuthorCard author={review.author} />
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+
+        {relatedReviews.length > 0 && (
+          <section className="mt-16 pt-8 border-t border-border/50">
+            <h2 className="text-2xl font-bold mb-6">Reviews Relacionadas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedReviews.map((relatedReview) => (
+                <ReviewCard key={relatedReview.id} review={relatedReview} />
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
     </div>
   )
 }

@@ -15,6 +15,7 @@ import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide, Author 
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
 import PlatinaGuideForm from "./platina-guide-form"
+import ProsConsForm from "./pros-cons-form"
 
 interface PostFormProps {
   type: "review" | "news"
@@ -57,6 +58,9 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
   const [authors, setAuthors] = useState<Author[]>([])
   const [loadingAuthors, setLoadingAuthors] = useState(true)
+
+  const [pros, setPros] = useState<string[]>((initialData as Review)?.pros || [])
+  const [cons, setCons] = useState<string[]>((initialData as Review)?.cons || [])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -131,6 +135,8 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             .filter(Boolean),
           additionalImages: additionalImages.filter((img) => img.url.trim() !== ""),
           platinaGuide: platinaGuide.tips ? platinaGuide : undefined,
+          pros: pros.filter((p) => p.trim() !== ""),
+          cons: cons.filter((c) => c.trim() !== ""),
         }
       } else {
         data = baseData
@@ -153,6 +159,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="author">Autor</TabsTrigger>
+          {isReview && <TabsTrigger value="proscons">Prós e Contras</TabsTrigger>}
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
         </TabsList>
@@ -274,6 +281,29 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isReview && (
+          <TabsContent value="proscons" className="pt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Prós e Contras</CardTitle>
+                <CardDescription>
+                  Liste os pontos positivos e negativos do jogo, como em uma revista de games.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProsConsForm
+                  pros={pros}
+                  cons={cons}
+                  onChange={(newPros, newCons) => {
+                    setPros(newPros)
+                    setCons(newCons)
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {isReview && (
           <TabsContent value="images" className="pt-4">
