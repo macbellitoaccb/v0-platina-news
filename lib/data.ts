@@ -121,6 +121,7 @@ async function convertDbReviewToReview(dbReview: DbReview, supabase: any): Promi
       author_id: dbReview.author_id, // Incluir author_id
       platinaGuide: dbReview.platina_guide,
       additionalImages,
+      youtubeUrl: dbReview.youtube_url, // Adicionar campo youtubeUrl
     }
   } catch (error) {
     console.error("Error converting DB review:", error)
@@ -141,6 +142,7 @@ async function convertDbReviewToReview(dbReview: DbReview, supabase: any): Promi
       author_id: dbReview.author_id, // Incluir author_id
       platinaGuide: dbReview.platina_guide,
       additionalImages: [],
+      youtubeUrl: dbReview.youtube_url, // Adicionar campo youtubeUrl
     }
   }
 }
@@ -179,6 +181,7 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       updatedAt: dbNews.updated_at,
       author,
       author_id: dbNews.author_id, // Incluir author_id
+      youtubeUrl: dbNews.youtube_url, // Adicionar campo youtubeUrl
     }
   } catch (error) {
     console.error("Error converting DB news:", error)
@@ -192,6 +195,7 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       createdAt: dbNews.created_at,
       updatedAt: dbNews.updated_at,
       author_id: dbNews.author_id, // Incluir author_id
+      youtubeUrl: dbNews.youtube_url, // Adicionar campo youtubeUrl
     }
   }
 }
@@ -576,6 +580,7 @@ export async function getReviews(): Promise<Review[]> {
             author_id: dbReview.author_id,
             platinaGuide: dbReview.platina_guide,
             additionalImages: [],
+            youtubeUrl: dbReview.youtube_url, // Adicionar campo youtubeUrl
           }
         }
       }),
@@ -634,6 +639,7 @@ export async function getNews(): Promise<News[]> {
             createdAt: dbNewsItem.created_at,
             updatedAt: dbNewsItem.updated_at,
             author_id: dbNewsItem.author_id,
+            youtubeUrl: dbNewsItem.youtube_url, // Adicionar campo youtubeUrl
           }
         }
       }),
@@ -955,8 +961,9 @@ export async function saveReview(review: Review): Promise<void> {
       image: review.image,
       rating: review.rating,
       game_name: review.gameName,
-      author_id: authorId, // Use authorId (default or provided)
+      author_id: authorId,
       platina_guide: review.platinaGuide,
+      youtube_url: review.youtubeUrl, // Adicionar campo youtube_url
       updated_at: new Date().toISOString(),
     }
 
@@ -1067,7 +1074,8 @@ export async function saveNews(news: News): Promise<void> {
       slug: news.slug,
       content: news.content,
       image: news.image,
-      author_id: authorId, // Use authorId (default or provided)
+      author_id: authorId,
+      youtube_url: news.youtubeUrl, // Adicionar campo youtube_url
       updated_at: new Date().toISOString(),
     }
 
@@ -1130,7 +1138,7 @@ export async function saveGuide(guide: Guide): Promise<void> {
       game_name: guide.gameName,
       difficulty: guide.difficulty,
       estimated_time: guide.estimatedTime,
-      author_id: authorId, // Use authorId (default or provided)
+      author_id: authorId,
       updated_at: new Date().toISOString(),
     }
 
