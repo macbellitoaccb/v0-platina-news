@@ -156,7 +156,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2"}`}>
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="proscons">Prós e Contras</TabsTrigger>}
