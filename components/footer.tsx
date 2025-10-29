@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { PaintRoller as GameController, Twitter, Instagram, Youtube, Twitch } from "lucide-react"
+import { Trophy, Twitter, Instagram, Youtube, Twitch } from "lucide-react"
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <GameController className="h-6 w-6 text-primary" />
+              <Trophy className="h-6 w-6 text-primary" />
               <span className="text-xl font-black tracking-tighter bg-clip-text text-transparent gamer-gradient">
                 PLATINA<span className="text-white">NEWS</span>
               </span>

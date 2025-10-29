@@ -42,6 +42,15 @@ export interface AdditionalImage {
   display_order?: number
 }
 
+export interface NewsMedia {
+  id?: string
+  news_id?: string
+  type: "image" | "video"
+  url: string
+  caption: string
+  display_order?: number
+}
+
 export interface TrophyGuideStep {
   id?: string
   guide_id?: string
@@ -78,6 +87,7 @@ export interface Review extends Post {
 
 export interface News extends Post {
   type: "news"
+  additionalMedia?: NewsMedia[]
 }
 
 export interface Guide extends Post {
@@ -117,6 +127,15 @@ export interface DbNews {
   updated_at: string
   author_id?: string
   youtube_url?: string
+}
+
+export interface DbNewsMedia {
+  id: string
+  news_id: string
+  type: "image" | "video"
+  url: string
+  caption: string
+  display_order: number
 }
 
 export interface DbGuide {

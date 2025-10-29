@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Review, News, TrophyRating, AdditionalImage, PlatinaGuide, Author } from "@/lib/types"
+import type { Review, News, TrophyRating, AdditionalImage, NewsMedia, PlatinaGuide, Author } from "@/lib/types"
 import { slugify } from "@/lib/utils"
 import AdditionalImagesForm from "./additional-images-form"
+import NewsMediaForm from "./news-media-form"
 import PlatinaGuideForm from "./platina-guide-form"
-import ImageUpload from "./image-upload"
 
 interface PostFormProps {
   type: "review" | "news"
@@ -35,6 +35,7 @@ const defaultPlatinaGuide: PlatinaGuide = {
 export default function PostForm({ type, initialData, onSubmit }: PostFormProps) {
   const router = useRouter()
   const isReview = type === "review"
+  const isNews = type === "news"
   const isEditing = !!initialData
 
   const [formData, setFormData] = useState({
@@ -52,6 +53,8 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   const [additionalImages, setAdditionalImages] = useState<AdditionalImage[]>(
     (initialData as Review)?.additionalImages || [],
   )
+
+  const [newsMedia, setNewsMedia] = useState<NewsMedia[]>((initialData as News)?.additionalMedia || [])
 
   const [platinaGuide, setPlatinaGuide] = useState<PlatinaGuide>(
     (initialData as Review)?.platinaGuide || { ...defaultPlatinaGuide },
@@ -76,7 +79,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         setAuthors(data)
       } catch (error) {
         console.error("Error fetching authors:", error)
-        // Keep empty array on error - will use default author
         setAuthors([])
       } finally {
         setLoadingAuthors(false)
@@ -93,10 +95,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleImageChange = (url: string) => {
-    setFormData((prev) => ({ ...prev, image: url }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,7 +138,10 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           platinaGuide: platinaGuide.tips ? platinaGuide : undefined,
         }
       } else {
-        data = baseData
+        data = {
+          ...baseData,
+          additionalMedia: newsMedia.filter((media) => media.url.trim() !== ""),
+        }
       }
 
       await onSubmit(data)
@@ -157,11 +158,14 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2"}`}>
+        <TabsList
+          className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-4" : isNews ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"}`}
+        >
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
+          {isNews && <TabsTrigger value="media">Imagens e Vídeos</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
@@ -171,12 +175,17 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
               <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
 
-            <ImageUpload
-              value={formData.image}
-              onChange={handleImageChange}
-              label="Imagem Principal"
-              description="Faça upload de uma imagem ou cole a URL"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="image">URL da Imagem Principal</Label>
+              <Input
+                id="image"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                placeholder="https://exemplo.com/imagem.jpg"
+                required
+              />
+            </div>
           </div>
 
           {isReview && (
@@ -280,7 +289,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
                     <SelectContent>
                       <SelectItem value="default">Usar autor padrão (Admin)</SelectItem>
                       {authors.map((author) => (
-                        <SelectItem key={author.id} value={author.id}>
+                        <SelectItem key={author.id} value={author.id!}>
                           {author.name}
                         </SelectItem>
                       ))}
@@ -320,6 +329,22 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
               </CardHeader>
               <CardContent>
                 <PlatinaGuideForm guide={platinaGuide} onChange={setPlatinaGuide} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {isNews && (
+          <TabsContent value="media" className="pt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Imagens e Vídeos Adicionais</CardTitle>
+                <CardDescription>
+                  Adicione imagens ou vídeos do YouTube que serão exibidos ao longo da notícia. O texto é opcional.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <NewsMediaForm media={newsMedia} onChange={setNewsMedia} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { PaintRoller as GameController, Menu, X, Search } from "lucide-react"
+import { Trophy, Menu, X, Search } from "lucide-react"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -15,8 +15,7 @@ export default function Header() {
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="relative">
-              <GameController className="h-8 w-8 text-primary" />
-              <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-purple-500 glow"></div>
+              <Trophy className="h-8 w-8 text-primary" />
             </div>
             <span className="text-2xl font-black tracking-tighter bg-clip-text text-transparent gamer-gradient">
               PLATINA<span className="text-white">NEWS</span>

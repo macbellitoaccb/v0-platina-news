@@ -31,14 +31,13 @@ export default function AdditionalImagesForm({ images, onChange }: AdditionalIma
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Label>Imagens Adicionais (2-5)</Label>
+        <Label>Imagens Adicionais</Label>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={addImage}
-          disabled={images.length >= 5}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 bg-transparent"
         >
           <Plus className="h-4 w-4" />
           Adicionar Imagem
@@ -63,7 +62,7 @@ export default function AdditionalImagesForm({ images, onChange }: AdditionalIma
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`image-caption-${index}`}>Legenda</Label>
+            <Label htmlFor={`image-caption-${index}`}>Legenda (opcional)</Label>
             <Input
               id={`image-caption-${index}`}
               value={image.caption}
