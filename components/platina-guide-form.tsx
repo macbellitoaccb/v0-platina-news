@@ -58,7 +58,7 @@ export default function PlatinaGuideForm({ guide, onChange }: PlatinaGuideFormPr
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="guide-missableTrophies" className="cursor-pointer">
-            Possui troféus missáveis?
+            Possui Troféus Perdíveis?
           </Label>
           <Switch
             id="guide-missableTrophies"
@@ -69,7 +69,7 @@ export default function PlatinaGuideForm({ guide, onChange }: PlatinaGuideFormPr
 
         <div className="flex items-center justify-between">
           <Label htmlFor="guide-onlineRequired" className="cursor-pointer">
-            Requer troféus online?
+            Requer Troféus Online?
           </Label>
           <Switch
             id="guide-onlineRequired"
