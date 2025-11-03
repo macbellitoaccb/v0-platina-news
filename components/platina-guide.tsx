@@ -46,12 +46,12 @@ export default function PlatinaGuide({ guide }: PlatinaGuideProps) {
 
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
-          <span className="text-sm">Tempo estimado: {guide.timeToPlat}</span>
+          <span className="text-sm">Tempo Estimado: {guide.timeToPlat}</span>
         </div>
 
         <div className="flex items-center gap-2">
           <AlertTriangle className={`h-4 w-4 ${guide.missableTrophies ? "text-yellow-500" : "text-green-500"}`} />
-          <span className="text-sm">Troféus missáveis: {guide.missableTrophies ? "Sim" : "Não"}</span>
+          <span className="text-sm">Troféus Perdíveis {guide.missableTrophies ? "Sim" : "Não"}</span>
         </div>
 
         <div className="flex items-center gap-2">
