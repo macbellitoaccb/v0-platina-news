@@ -14,8 +14,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Seu portal definitivo para reviews, notícias e guias do mundo dos games.
-            </p>
+              Seu portal definitivo para reviews, notícias e guias do mundo das Platinas.            </p>
             <div className="flex gap-4 mt-2">
               <Link href="#" className="text-muted-foreground hover:text-primary">
                 <Twitter className="h-5 w-5" />
