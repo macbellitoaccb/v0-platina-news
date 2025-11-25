@@ -1398,6 +1398,27 @@ export async function getArticles(): Promise<Article[]> {
             }
           }
 
+          // Fetch article media
+          let articleMedia: any[] = []
+          try {
+            const { data: mediaData } = await supabase
+              .from("article_media")
+              .select("*")
+              .eq("article_id", dbArticle.id)
+              .order("display_order", { ascending: true })
+
+            articleMedia =
+              mediaData?.map((media: any) => ({
+                id: media.id,
+                type: media.type,
+                url: media.url,
+                caption: media.caption,
+                display_order: media.display_order,
+              })) || []
+          } catch (error) {
+            console.warn("Error fetching article media:", error)
+          }
+
           return {
             id: dbArticle.id,
             title: dbArticle.title,
@@ -1411,6 +1432,7 @@ export async function getArticles(): Promise<Article[]> {
             updatedAt: dbArticle.updated_at,
             author,
             author_id: dbArticle.author_id,
+            articleMedia, // Added articleMedia to response
           }
         } catch (error) {
           console.warn("Error converting article:", error)
@@ -1466,6 +1488,27 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
       }
     }
 
+    // Fetch article media
+    let articleMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("article_media")
+        .select("*")
+        .eq("article_id", dbArticle.id)
+        .order("display_order", { ascending: true })
+
+      articleMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching article media:", error)
+    }
+
     return {
       id: dbArticle.id,
       title: dbArticle.title,
@@ -1479,6 +1522,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
       updatedAt: dbArticle.updated_at,
       author,
       author_id: dbArticle.author_id,
+      articleMedia, // Added articleMedia to response
     }
   } catch (error) {
     console.error("Error fetching article by slug:", error)
@@ -1512,6 +1556,26 @@ export async function getArticleById(id: string): Promise<Article | null> {
       }
     }
 
+    let articleMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("article_media")
+        .select("*")
+        .eq("article_id", id)
+        .order("display_order", { ascending: true })
+
+      articleMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching article media:", error)
+    }
+
     return {
       id: dbArticle.id,
       title: dbArticle.title,
@@ -1525,6 +1589,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
       updatedAt: dbArticle.updated_at,
       author,
       author_id: dbArticle.author_id,
+      articleMedia, // Added articleMedia to response
     }
   } catch (error) {
     console.error("Error fetching article by ID:", error)
@@ -1661,6 +1726,27 @@ export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
             }
           }
 
+          // Fetch platinador media
+          let platinadorMedia: any[] = []
+          try {
+            const { data: mediaData } = await supabase
+              .from("platinador_media")
+              .select("*")
+              .eq("platinador_tip_id", dbTip.id)
+              .order("display_order", { ascending: true })
+
+            platinadorMedia =
+              mediaData?.map((media: any) => ({
+                id: media.id,
+                type: media.type,
+                url: media.url,
+                caption: media.caption,
+                display_order: media.display_order,
+              })) || []
+          } catch (error) {
+            console.warn("Error fetching platinador media:", error)
+          }
+
           return {
             id: dbTip.id,
             title: dbTip.title,
@@ -1674,6 +1760,7 @@ export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
             updatedAt: dbTip.updated_at,
             author,
             author_id: dbTip.author_id,
+            platinadorMedia, // Added platinadorMedia to response
           }
         } catch (error) {
           console.warn("Error converting platinador tip:", error)
@@ -1729,6 +1816,27 @@ export async function getPlatinadorTipBySlug(slug: string): Promise<PlatinadorTi
       }
     }
 
+    // Fetch platinador media
+    let platinadorMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("platinador_media")
+        .select("*")
+        .eq("platinador_tip_id", dbTip.id)
+        .order("display_order", { ascending: true })
+
+      platinadorMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching platinador media:", error)
+    }
+
     return {
       id: dbTip.id,
       title: dbTip.title,
@@ -1742,6 +1850,7 @@ export async function getPlatinadorTipBySlug(slug: string): Promise<PlatinadorTi
       updatedAt: dbTip.updated_at,
       author,
       author_id: dbTip.author_id,
+      platinadorMedia, // Added platinadorMedia to response
     }
   } catch (error) {
     console.error("Error fetching platinador tip by slug:", error)
@@ -1775,6 +1884,26 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
       }
     }
 
+    let platinadorMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("platinador_media")
+        .select("*")
+        .eq("platinador_tip_id", id)
+        .order("display_order", { ascending: true })
+
+      platinadorMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching platinador media:", error)
+    }
+
     return {
       id: dbTip.id,
       title: dbTip.title,
@@ -1788,6 +1917,7 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
       updatedAt: dbTip.updated_at,
       author,
       author_id: dbTip.author_id,
+      platinadorMedia, // Added platinadorMedia to response
     }
   } catch (error) {
     console.error("Error fetching platinador tip by ID:", error)

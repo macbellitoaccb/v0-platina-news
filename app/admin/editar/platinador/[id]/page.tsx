@@ -27,7 +27,7 @@ export default function EditarPlatinadorPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Editar Canto do Platinador</h1>
-      <PostForm type="platinador-tip" initialData={tip} onSubmit={updatePlatinadorTip} />
+      <PostForm type="platinador" initialData={tip} onSubmit={updatePlatinadorTip} />
     </div>
   )
 }

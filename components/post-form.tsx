@@ -18,7 +18,7 @@ import NewsMediaForm from "./news-media-form"
 import PlatinaGuideForm from "./platina-guide-form"
 
 interface PostFormProps {
-  type: "review" | "news"
+  type: "review" | "news" | "article" | "platinador"
   initialData?: Review | News
   onSubmit: (data: any) => Promise<void>
 }
@@ -36,6 +36,8 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   const router = useRouter()
   const isReview = type === "review"
   const isNews = type === "news"
+  const isArticle = type === "article"
+  const isPlatinador = type === "platinador"
   const isEditing = !!initialData
 
   const [formData, setFormData] = useState({
@@ -161,13 +163,19 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
         <TabsList
-          className={`grid w-full ${isReview ? "grid-cols-2 md:grid-cols-4" : isNews ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"}`}
+          className={`grid w-full ${
+            isReview
+              ? "grid-cols-2 md:grid-cols-4"
+              : (isNews || isArticle || isPlatinador)
+                ? "grid-cols-2 md:grid-cols-3"
+                : "grid-cols-2"
+          }`}
         >
           <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
           <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
-          {isNews && <TabsTrigger value="media">Imagens e Vídeos</TabsTrigger>}
+          {(isNews || isArticle || isPlatinador) && <TabsTrigger value="media">Imagens e Vídeos</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
@@ -177,7 +185,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
               <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
 
-            {isNews && (
+            {(isNews || isArticle || isPlatinador) && (
               <div className="space-y-2">
                 <Label htmlFor="subtitle">Subtítulo</Label>
                 <Input
@@ -185,7 +193,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
                   name="subtitle"
                   value={formData.subtitle || ""}
                   onChange={handleChange}
-                  placeholder="Um resumo breve da notícia..."
+                  placeholder="Um resumo breve..."
                 />
               </div>
             )}
@@ -353,13 +361,13 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           </TabsContent>
         )}
 
-        {isNews && (
+        {(isNews || isArticle || isPlatinador) && (
           <TabsContent value="media" className="pt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Imagens e Vídeos Adicionais</CardTitle>
                 <CardDescription>
-                  Adicione imagens ou vídeos do YouTube que serão exibidos ao longo da notícia. O texto é opcional.
+                  Adicione imagens ou vídeos do YouTube que serão exibidos ao longo do post. O texto é opcional.
                 </CardDescription>
               </CardHeader>
               <CardContent>
