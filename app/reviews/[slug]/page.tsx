@@ -96,7 +96,6 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             <div className="md:col-span-5 space-y-4">
               {review.platinaGuide && (
                 <div>
-                  <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">Guia de Platina</h3>
                   <PlatinaGuide guide={review.platinaGuide} />
                 </div>
               )}

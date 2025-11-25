@@ -67,7 +67,7 @@ export interface Post {
   slug: string
   content: string
   image: string
-  type: "review" | "news" | "guide"
+  type: "review" | "news" | "guide" | "article" | "platinador-tip"
   created_at: string
   updated_at: string
   author?: Author // Para exibição (populado na busca)
@@ -87,7 +87,20 @@ export interface Review extends Post {
 
 export interface News extends Post {
   type: "news"
+  subtitle?: string // Adicionar subtítulo para notícias
   additionalMedia?: NewsMedia[]
+}
+
+export interface Article extends Post {
+  type: "article"
+  subtitle?: string
+  category?: string
+}
+
+export interface PlatinadorTip extends Post {
+  type: "platinador-tip"
+  category?: string
+  helpful_count?: number
 }
 
 export interface Guide extends Post {
@@ -99,7 +112,7 @@ export interface Guide extends Post {
   tags: string[]
 }
 
-export type AllPosts = Review | News | Guide
+export type AllPosts = Review | News | Guide | Article | PlatinadorTip
 
 // Interfaces para dados do Supabase
 export interface DbReview {
@@ -121,6 +134,7 @@ export interface DbNews {
   id: string
   title: string
   slug: string
+  subtitle?: string // Adicionar subtítulo no banco
   content: string
   image: string
   created_at: string
@@ -178,4 +192,30 @@ export interface DbGuideStep {
   image?: string
   video?: string
   display_order: number
+}
+
+export interface DbArticle {
+  id: string
+  title: string
+  slug: string
+  subtitle?: string
+  content: string
+  image: string
+  category?: string
+  created_at: string
+  updated_at: string
+  author_id?: string
+}
+
+export interface DbPlatinadorTip {
+  id: string
+  title: string
+  slug: string
+  content: string
+  image: string
+  category?: string
+  created_at: string
+  updated_at: string
+  author_id?: string
+  helpful_count?: number
 }

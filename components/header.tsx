@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Trophy, Menu, X, Search } from "lucide-react"
+import { Menu, X, Search } from "lucide-react"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -15,9 +16,9 @@ export default function Header() {
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="relative">
-              <Trophy className="h-8 w-8 text-primary" />
+              <Image src="/logo-platina.svg" alt="PlatinaNews" width={40} height={40} className="h-10 w-auto" />
             </div>
-            <span className="text-2xl font-black tracking-tighter bg-clip-text text-transparent gamer-gradient">
+            <span className="hidden sm:inline text-xl md:text-2xl font-black tracking-tighter text-primary">
               PLATINA<span className="text-white">NEWS</span>
             </span>
           </Link>

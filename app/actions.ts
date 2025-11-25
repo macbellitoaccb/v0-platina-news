@@ -10,8 +10,12 @@ import {
   saveAuthor,
   deleteAuthor,
   getAuthorByUserId,
+  saveArticle,
+  deleteArticle,
+  savePlatinadorTip,
+  deletePlatinadorTip,
 } from "@/lib/data"
-import type { Review, News, Guide, Author } from "@/lib/types"
+import type { Review, News, Guide, Author, Article, PlatinadorTip } from "@/lib/types"
 import { createServerSupabaseClient, createClientSupabaseClient } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 
@@ -89,6 +93,31 @@ export async function removeNews(id: string) {
 
 export async function removeGuide(id: string) {
   return deleteGuide(id)
+}
+
+// --- Article and Platinador Tip Actions ---
+export async function createArticle(data: Article) {
+  return saveArticle(data)
+}
+
+export async function updateArticle(data: Article) {
+  return saveArticle(data)
+}
+
+export async function createPlatinadorTip(data: PlatinadorTip) {
+  return savePlatinadorTip(data)
+}
+
+export async function updatePlatinadorTip(data: PlatinadorTip) {
+  return savePlatinadorTip(data)
+}
+
+export async function removeArticle(id: string) {
+  return deleteArticle(id)
+}
+
+export async function removePlatinadorTip(id: string) {
+  return deletePlatinadorTip(id)
 }
 
 // --- Author Management Actions ---

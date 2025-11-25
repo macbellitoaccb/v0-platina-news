@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "./supabase"
-import type { Review, News, Guide, AllPosts, Author, DbReview, DbNews, DbGuide } from "./types"
+import type { Review, News, Guide, AllPosts, Author, DbReview, DbNews, DbGuide, Article, PlatinadorTip } from "./types"
 import { v4 as uuidv4 } from "uuid"
 import { retrySupabaseOperation } from "./supabase-helpers"
 // Mock data imports
@@ -720,13 +720,15 @@ export async function getGuides(): Promise<Guide[]> {
 // Function to fetch all posts (reviews, news and guides)
 export async function getAllPosts(): Promise<AllPosts[]> {
   try {
-    const [reviews, news, guides] = await Promise.all([
+    const [reviews, news, guides, articles, platinadorTips] = await Promise.all([
       getReviews().catch(() => []),
       getNews().catch(() => []),
       getGuides().catch(() => []),
+      getArticles().catch(() => []),
+      getPlatinadorTips().catch(() => []),
     ])
 
-    return [...reviews, ...news, ...guides].sort(
+    return [...reviews, ...news, ...guides, ...articles, ...platinadorTips].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
   } catch (error) {
@@ -1303,4 +1305,501 @@ export function ensureDataDir() {
 
 export function seedDatabaseIfEmpty() {
   // No-op in this version
+}
+
+export async function getArticles(): Promise<Article[]> {
+  console.log("Fetching articles...")
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, returning empty articles array")
+    return []
+  }
+
+  try {
+    const dbArticles = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase.from("articles").select("*").order("created_at", { ascending: false })
+      if (error) throw error
+      return data
+    }, "Fetch Articles")
+
+    if (!dbArticles || dbArticles.length === 0) {
+      console.log("No articles found in database")
+      return []
+    }
+
+    console.log(`Found ${dbArticles.length} articles in database`)
+
+    const articles = await Promise.all(
+      dbArticles.map(async (dbArticle: any) => {
+        try {
+          let author: Author | undefined
+          if (dbArticle.author_id) {
+            const { data: authorData } = await supabase
+              .from("authors")
+              .select("*")
+              .eq("id", dbArticle.author_id)
+              .single()
+            if (authorData) {
+              author = {
+                id: authorData.id,
+                name: authorData.name,
+                avatar: authorData.avatar,
+                psnId: authorData.psn_id,
+                instagram: authorData.instagram,
+                twitter: authorData.twitter,
+                bio: authorData.bio,
+                user_id: authorData.user_id,
+                role: authorData.role,
+              }
+            }
+          }
+
+          return {
+            id: dbArticle.id,
+            title: dbArticle.title,
+            slug: dbArticle.slug,
+            subtitle: dbArticle.subtitle,
+            content: dbArticle.content,
+            image: dbArticle.image,
+            category: dbArticle.category,
+            type: "article" as const,
+            createdAt: dbArticle.created_at,
+            updatedAt: dbArticle.updated_at,
+            author,
+            author_id: dbArticle.author_id,
+          }
+        } catch (error) {
+          console.warn("Error converting article:", error)
+          return {
+            id: dbArticle.id,
+            title: dbArticle.title,
+            slug: dbArticle.slug,
+            subtitle: dbArticle.subtitle,
+            content: dbArticle.content,
+            image: dbArticle.image,
+            category: dbArticle.category,
+            type: "article" as const,
+            createdAt: dbArticle.created_at,
+            updatedAt: dbArticle.updated_at,
+            author_id: dbArticle.author_id,
+          }
+        }
+      }),
+    )
+
+    console.log("Successfully converted articles")
+    return articles
+  } catch (error) {
+    console.error("Supabase error fetching articles:", error)
+    return []
+  }
+}
+
+export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data: dbArticles, error } = await supabase.from("articles").select("*").eq("slug", slug)
+    if (error || !dbArticles || dbArticles.length === 0) return null
+
+    const dbArticle = dbArticles[0]
+    let author: Author | undefined
+    if (dbArticle.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbArticle.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    return {
+      id: dbArticle.id,
+      title: dbArticle.title,
+      slug: dbArticle.slug,
+      subtitle: dbArticle.subtitle,
+      content: dbArticle.content,
+      image: dbArticle.image,
+      category: dbArticle.category,
+      type: "article" as const,
+      createdAt: dbArticle.created_at,
+      updatedAt: dbArticle.updated_at,
+      author,
+      author_id: dbArticle.author_id,
+    }
+  } catch (error) {
+    console.error("Error fetching article by slug:", error)
+    return null
+  }
+}
+
+export async function getArticleById(id: string): Promise<Article | null> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data: dbArticle, error } = await supabase.from("articles").select("*").eq("id", id).single()
+    if (error || !dbArticle) return null
+
+    let author: Author | undefined
+    if (dbArticle.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbArticle.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    return {
+      id: dbArticle.id,
+      title: dbArticle.title,
+      slug: dbArticle.slug,
+      subtitle: dbArticle.subtitle,
+      content: dbArticle.content,
+      image: dbArticle.image,
+      category: dbArticle.category,
+      type: "article" as const,
+      createdAt: dbArticle.created_at,
+      updatedAt: dbArticle.updated_at,
+      author,
+      author_id: dbArticle.author_id,
+    }
+  } catch (error) {
+    console.error("Error fetching article by ID:", error)
+    return null
+  }
+}
+
+export async function saveArticle(article: Article): Promise<void> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) {
+    console.log("Supabase not available, cannot save article")
+    return
+  }
+
+  try {
+    let authorId = article.author_id
+    if (!authorId) {
+      authorId = await getOrCreateDefaultAuthor()
+    }
+
+    const dbArticle = {
+      title: article.title,
+      slug: article.slug,
+      subtitle: article.subtitle,
+      content: article.content,
+      image: article.image,
+      category: article.category,
+      author_id: authorId,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (article.id) {
+      const { error } = await supabase.from("articles").update(dbArticle).eq("id", article.id)
+      if (error) {
+        console.error("Error updating article:", error)
+        throw error
+      }
+    } else {
+      const newId = uuidv4()
+      const { data, error } = await supabase
+        .from("articles")
+        .insert({ ...dbArticle, id: newId })
+        .select()
+        .single()
+      if (error) {
+        console.error("Error creating article:", error)
+        return
+      }
+      article.id = data.id
+    }
+    console.log("Article saved successfully")
+  } catch (error) {
+    console.error("Error saving article:", error)
+    throw error
+  }
+}
+
+export async function deleteArticle(id: string): Promise<void> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) throw new Error("Banco de dados não disponível")
+
+  try {
+    await retrySupabaseOperation(async () => {
+      const { error } = await supabase.from("articles").delete().eq("id", id)
+      if (error) throw error
+      return true
+    }, `Delete Article ${id}`)
+    console.log(`Article ${id} deleted successfully`)
+  } catch (error) {
+    console.error("Error deleting article:", error)
+    throw new Error("Erro ao excluir artigo. Tente novamente.")
+  }
+}
+
+export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
+  console.log("Fetching platinador tips...")
+  const supabase = createSafeSupabaseClient()
+
+  if (!supabase) {
+    console.log("Supabase not available, returning empty tips array")
+    return []
+  }
+
+  try {
+    const dbTips = await retrySupabaseOperation(async () => {
+      const { data, error } = await supabase
+        .from("platinador_tips")
+        .select("*")
+        .order("created_at", { ascending: false })
+      if (error) throw error
+      return data
+    }, "Fetch Platinador Tips")
+
+    if (!dbTips || dbTips.length === 0) {
+      console.log("No platinador tips found in database")
+      return []
+    }
+
+    console.log(`Found ${dbTips.length} platinador tips in database`)
+
+    const tips = await Promise.all(
+      dbTips.map(async (dbTip: any) => {
+        try {
+          let author: Author | undefined
+          if (dbTip.author_id) {
+            const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
+            if (authorData) {
+              author = {
+                id: authorData.id,
+                name: authorData.name,
+                avatar: authorData.avatar,
+                psnId: authorData.psn_id,
+                instagram: authorData.instagram,
+                twitter: authorData.twitter,
+                bio: authorData.bio,
+                user_id: authorData.user_id,
+                role: authorData.role,
+              }
+            }
+          }
+
+          return {
+            id: dbTip.id,
+            title: dbTip.title,
+            slug: dbTip.slug,
+            content: dbTip.content,
+            image: dbTip.image,
+            category: dbTip.category,
+            helpful_count: dbTip.helpful_count,
+            type: "platinador-tip" as const,
+            createdAt: dbTip.created_at,
+            updatedAt: dbTip.updated_at,
+            author,
+            author_id: dbTip.author_id,
+          }
+        } catch (error) {
+          console.warn("Error converting platinador tip:", error)
+          return {
+            id: dbTip.id,
+            title: dbTip.title,
+            slug: dbTip.slug,
+            content: dbTip.content,
+            image: dbTip.image,
+            category: dbTip.category,
+            helpful_count: dbTip.helpful_count,
+            type: "platinador-tip" as const,
+            createdAt: dbTip.created_at,
+            updatedAt: dbTip.updated_at,
+            author_id: dbTip.author_id,
+          }
+        }
+      }),
+    )
+
+    console.log("Successfully converted platinador tips")
+    return tips
+  } catch (error) {
+    console.error("Supabase error fetching platinador tips:", error)
+    return []
+  }
+}
+
+export async function getPlatinadorTipBySlug(slug: string): Promise<PlatinadorTip | null> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data: dbTips, error } = await supabase.from("platinador_tips").select("*").eq("slug", slug)
+    if (error || !dbTips || dbTips.length === 0) return null
+
+    const dbTip = dbTips[0]
+    let author: Author | undefined
+    if (dbTip.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    return {
+      id: dbTip.id,
+      title: dbTip.title,
+      slug: dbTip.slug,
+      content: dbTip.content,
+      image: dbTip.image,
+      category: dbTip.category,
+      helpful_count: dbTip.helpful_count,
+      type: "platinador-tip" as const,
+      createdAt: dbTip.created_at,
+      updatedAt: dbTip.updated_at,
+      author,
+      author_id: dbTip.author_id,
+    }
+  } catch (error) {
+    console.error("Error fetching platinador tip by slug:", error)
+    return null
+  }
+}
+
+export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | null> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data: dbTip, error } = await supabase.from("platinador_tips").select("*").eq("id", id).single()
+    if (error || !dbTip) return null
+
+    let author: Author | undefined
+    if (dbTip.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    return {
+      id: dbTip.id,
+      title: dbTip.title,
+      slug: dbTip.slug,
+      content: dbTip.content,
+      image: dbTip.image,
+      category: dbTip.category,
+      helpful_count: dbTip.helpful_count,
+      type: "platinador-tip" as const,
+      createdAt: dbTip.created_at,
+      updatedAt: dbTip.updated_at,
+      author,
+      author_id: dbTip.author_id,
+    }
+  } catch (error) {
+    console.error("Error fetching platinador tip by ID:", error)
+    return null
+  }
+}
+
+export async function savePlatinadorTip(tip: PlatinadorTip): Promise<void> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) {
+    console.log("Supabase not available, cannot save platinador tip")
+    return
+  }
+
+  try {
+    let authorId = tip.author_id
+    if (!authorId) {
+      authorId = await getOrCreateDefaultAuthor()
+    }
+
+    const dbTip = {
+      title: tip.title,
+      slug: tip.slug,
+      content: tip.content,
+      image: tip.image,
+      category: tip.category,
+      helpful_count: tip.helpful_count || 0,
+      author_id: authorId,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (tip.id) {
+      const { error } = await supabase.from("platinador_tips").update(dbTip).eq("id", tip.id)
+      if (error) {
+        console.error("Error updating platinador tip:", error)
+        throw error
+      }
+    } else {
+      const newId = uuidv4()
+      const { data, error } = await supabase
+        .from("platinador_tips")
+        .insert({ ...dbTip, id: newId })
+        .select()
+        .single()
+      if (error) {
+        console.error("Error creating platinador tip:", error)
+        return
+      }
+      tip.id = data.id
+    }
+    console.log("Platinador tip saved successfully")
+  } catch (error) {
+    console.error("Error saving platinador tip:", error)
+    throw error
+  }
+}
+
+export async function deletePlatinadorTip(id: string): Promise<void> {
+  const supabase = createSafeSupabaseClient()
+  if (!supabase) throw new Error("Banco de dados não disponível")
+
+  try {
+    await retrySupabaseOperation(async () => {
+      const { error } = await supabase.from("platinador_tips").delete().eq("id", id)
+      if (error) throw error
+      return true
+    }, `Delete Platinador Tip ${id}`)
+    console.log(`Platinador tip ${id} deleted successfully`)
+  } catch (error) {
+    console.error("Error deleting platinador tip:", error)
+    throw new Error("Erro ao excluir dica. Tente novamente.")
+  }
 }

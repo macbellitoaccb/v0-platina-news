@@ -30,7 +30,18 @@ export default async function AdminPage() {
               Novo Guia
             </Button>
           </Link>
-          {/* Novo botão para gerenciar autores */}
+          <Link href="/admin/novo/artigo">
+            <Button variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Novo Artigo
+            </Button>
+          </Link>
+          <Link href="/admin/novo/platinador">
+            <Button variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nova Dica
+            </Button>
+          </Link>
           <Link href="/admin/autores">
             <Button variant="ghost">
               <Users className="mr-2 h-4 w-4" />

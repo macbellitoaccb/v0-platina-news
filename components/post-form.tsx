@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
+import TextEditor from "./text-editor"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,6 +48,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     tags: (initialData as Review)?.tags?.join(", ") || "",
     author_id: initialData?.author_id || "",
     youtubeUrl: initialData?.youtubeUrl || "",
+    subtitle: (initialData as News)?.subtitle || "",
   })
 
   const [additionalImages, setAdditionalImages] = useState<AdditionalImage[]>(
@@ -140,6 +141,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
       } else {
         data = {
           ...baseData,
+          subtitle: formData.subtitle,
           additionalMedia: newsMedia.filter((media) => media.url.trim() !== ""),
         }
       }
@@ -174,6 +176,19 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
               <Label htmlFor="title">Título</Label>
               <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
+
+            {isNews && (
+              <div className="space-y-2">
+                <Label htmlFor="subtitle">Subtítulo</Label>
+                <Input
+                  id="subtitle"
+                  name="subtitle"
+                  value={formData.subtitle || ""}
+                  onChange={handleChange}
+                  placeholder="Um resumo breve da notícia..."
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="image">URL da Imagem Principal</Label>
@@ -260,7 +275,11 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
 
           <div className="space-y-2">
             <Label htmlFor="content">Conteúdo</Label>
-            <Textarea id="content" name="content" value={formData.content} onChange={handleChange} rows={10} required />
+            <TextEditor
+              value={formData.content}
+              onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
+              placeholder="Escreva o conteúdo do seu post aqui..."
+            />
           </div>
         </TabsContent>
 
