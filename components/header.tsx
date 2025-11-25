@@ -52,6 +52,18 @@ export default function Header() {
             >
               Guias
             </Link>
+            <Link
+              href="/artigos"
+              className="text-sm font-medium uppercase tracking-wide transition-colors hover:text-primary"
+            >
+              Artigos
+            </Link>
+            <Link
+              href="/canto-do-platinador"
+              className="text-sm font-medium uppercase tracking-wide transition-colors hover:text-primary"
+            >
+              Canto do Platinador
+            </Link>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
               <Search className="h-5 w-5" />
             </Button>
@@ -89,6 +101,20 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Guias
+              </Link>
+              <Link
+                href="/artigos"
+                className="text-sm font-medium transition-colors hover:text-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Artigos
+              </Link>
+              <Link
+                href="/canto-do-platinador"
+                className="text-sm font-medium transition-colors hover:text-primary"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Canto do Platinador
               </Link>
             </nav>
           </div>
