@@ -47,6 +47,7 @@ export default async function NoticiaPage({ params }: NoticiaPageProps) {
                 <span>Por {news.author?.name || "Editor PlatinaNews"}</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight magazine-title">{news.title}</h1>
+              {news.subtitle && <p className="text-lg text-muted-foreground mt-2">{news.subtitle}</p>}
             </div>
             <div>
               <Button variant="outline" size="icon">
@@ -73,6 +74,56 @@ export default async function NoticiaPage({ params }: NoticiaPageProps) {
             </p>
           ))}
         </div>
+
+        {news.newsMedia && news.newsMedia.length > 0 && (
+          <div className="space-y-6 my-8">
+            {news.newsMedia.map((media, idx) => (
+              <div key={idx} className="space-y-2">
+                {media.type === "image" ? (
+                  <>
+                    <img
+                      src={media.url || "/placeholder.svg"}
+                      alt={media.caption || `Imagem ${idx + 1}`}
+                      className="w-full rounded-lg"
+                    />
+                    {media.caption && <p className="text-sm text-muted-foreground italic">{media.caption}</p>}
+                  </>
+                ) : (
+                  <>
+                    <div className="aspect-video w-full">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${media.url.split("v=")[1]}`}
+                        title={media.caption || `Vídeo ${idx + 1}`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="rounded-lg"
+                      />
+                    </div>
+                    {media.caption && <p className="text-sm text-muted-foreground italic">{media.caption}</p>}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {news.youtubeUrl && (
+          <div className="aspect-video w-full my-8">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${news.youtubeUrl.split("v=")[1]}`}
+              title="Vídeo do YouTube"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="rounded-lg"
+            />
+          </div>
+        )}
       </article>
 
       {otherNews.length > 0 && (

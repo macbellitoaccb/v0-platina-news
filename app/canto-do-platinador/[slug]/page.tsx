@@ -31,11 +31,50 @@ export default async function PlatinadorTipPage({ params }: { params: { slug: st
         </div>
       </div>
 
-      {tip.image && <img src={tip.image || "/placeholder.svg"} alt={tip.title} className="w-full rounded-lg" />}
+      {tip.image && (
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+          <img src={tip.image || "/placeholder.svg"} alt={tip.title} className="w-full h-full object-cover" />
+        </div>
+      )}
 
       <div className="prose prose-invert max-w-none">
         <div dangerouslySetInnerHTML={{ __html: tip.content }} />
       </div>
+
+      {tip.platinadorMedia && tip.platinadorMedia.length > 0 && (
+        <div className="space-y-6 my-8">
+          {tip.platinadorMedia.map((media, idx) => (
+            <div key={idx} className="space-y-2">
+              {media.type === "image" ? (
+                <>
+                  <img
+                    src={media.url || "/placeholder.svg"}
+                    alt={media.caption || `Imagem ${idx + 1}`}
+                    className="w-full rounded-lg"
+                  />
+                  {media.caption && <p className="text-sm text-muted-foreground italic">{media.caption}</p>}
+                </>
+              ) : (
+                <>
+                  <div className="aspect-video w-full">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${media.url.split("v=")[1]}`}
+                      title={media.caption || `Vídeo ${idx + 1}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    />
+                  </div>
+                  {media.caption && <p className="text-sm text-muted-foreground italic">{media.caption}</p>}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

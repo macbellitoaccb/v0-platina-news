@@ -170,10 +170,32 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       }
     }
 
+    // Fetch news media
+    let newsMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("news_media")
+        .select("*")
+        .eq("news_id", dbNews.id)
+        .order("display_order", { ascending: true })
+
+      newsMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching news media for news:", error)
+    }
+
     return {
       id: dbNews.id,
       title: dbNews.title,
       slug: dbNews.slug,
+      subtitle: dbNews.subtitle, // Adicionar campo subtitle
       content: dbNews.content,
       image: dbNews.image,
       type: "news",
@@ -181,7 +203,8 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       updatedAt: dbNews.updated_at,
       author,
       author_id: dbNews.author_id, // Incluir author_id
-      youtubeUrl: dbNews.youtube_url, // Adicionar campo youtubeUrl
+      youtubeUrl: dbNews.youtubeUrl, // Adicionar campo youtubeUrl
+      newsMedia, // Adicionar campo newsMedia
     }
   } catch (error) {
     console.error("Error converting DB news:", error)
@@ -189,13 +212,15 @@ async function convertDbNewsToNews(dbNews: DbNews, supabase: any): Promise<News>
       id: dbNews.id,
       title: dbNews.title,
       slug: dbNews.slug,
+      subtitle: dbNews.subtitle, // Adicionar campo subtitle
       content: dbNews.content,
       image: dbNews.image,
       type: "news",
       createdAt: dbNews.created_at,
       updatedAt: dbNews.updated_at,
       author_id: dbNews.author_id, // Incluir author_id
-      youtubeUrl: dbNews.youtube_url, // Adicionar campo youtubeUrl
+      youtubeUrl: dbNews.youtubeUrl, // Adicionar campo youtubeUrl
+      newsMedia: [], // Adicionar campo newsMedia
     }
   }
 }
@@ -633,13 +658,15 @@ export async function getNews(): Promise<News[]> {
             id: dbNewsItem.id,
             title: dbNewsItem.title,
             slug: dbNewsItem.slug,
+            subtitle: dbNewsItem.subtitle, // Adicionar campo subtitle
             content: dbNewsItem.content,
             image: dbNewsItem.image,
             type: "news" as const,
             createdAt: dbNewsItem.created_at,
             updatedAt: dbNewsItem.updated_at,
             author_id: dbNewsItem.author_id,
-            youtubeUrl: dbNewsItem.youtube_url, // Adicionar campo youtubeUrl
+            youtubeUrl: dbNewsItem.youtubeUrl, // Adicionar campo youtubeUrl
+            newsMedia: [], // Adicionar campo newsMedia
           }
         }
       }),
@@ -1074,10 +1101,11 @@ export async function saveNews(news: News): Promise<void> {
     const dbNews = {
       title: news.title,
       slug: news.slug,
+      subtitle: news.subtitle, // Adicionar subtitle
       content: news.content,
       image: news.image,
       author_id: authorId,
-      youtube_url: news.youtubeUrl, // Adicionar campo youtube_url
+      youtube_url: news.youtubeUrl,
       updated_at: new Date().toISOString(),
     }
 
@@ -1107,6 +1135,21 @@ export async function saveNews(news: News): Promise<void> {
       }
 
       news.id = data.id
+    }
+
+    if (news.newsMedia && news.newsMedia.length > 0) {
+      await supabase.from("news_media").delete().eq("news_id", news.id)
+
+      for (let i = 0; i < news.newsMedia.length; i++) {
+        const media = news.newsMedia[i]
+        await supabase.from("news_media").insert({
+          news_id: news.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: i,
+        })
+      }
     }
     console.log("News saved successfully")
   } catch (error) {
@@ -1532,6 +1575,21 @@ export async function saveArticle(article: Article): Promise<void> {
       }
       article.id = data.id
     }
+
+    if (article.articleMedia && article.articleMedia.length > 0) {
+      await supabase.from("article_media").delete().eq("article_id", article.id)
+
+      for (let i = 0; i < article.articleMedia.length; i++) {
+        const media = article.articleMedia[i]
+        await supabase.from("article_media").insert({
+          article_id: article.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: i,
+        })
+      }
+    }
     console.log("Article saved successfully")
   } catch (error) {
     console.error("Error saving article:", error)
@@ -1779,6 +1837,21 @@ export async function savePlatinadorTip(tip: PlatinadorTip): Promise<void> {
         return
       }
       tip.id = data.id
+    }
+
+    if (tip.platinadorMedia && tip.platinadorMedia.length > 0) {
+      await supabase.from("platinador_media").delete().eq("platinador_tip_id", tip.id)
+
+      for (let i = 0; i < tip.platinadorMedia.length; i++) {
+        const media = tip.platinadorMedia[i]
+        await supabase.from("platinador_media").insert({
+          platinador_tip_id: tip.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: i,
+        })
+      }
     }
     console.log("Platinador tip saved successfully")
   } catch (error) {
