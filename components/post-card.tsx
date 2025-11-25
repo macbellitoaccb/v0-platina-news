@@ -11,7 +11,18 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const isReview = post.type === "review"
   const isGuide = post.type === "guide"
-  const postUrl = isReview ? `/reviews/${post.slug}` : isGuide ? `/guias/${post.slug}` : `/noticias/${post.slug}`
+  const isArticle = post.type === "article"
+  const isPlatinador = post.type === "platinador"
+
+  const postUrl = isReview
+    ? `/reviews/${post.slug}`
+    : isGuide
+      ? `/guias/${post.slug}`
+      : isArticle
+        ? `/artigos/${post.slug}`
+        : isPlatinador
+          ? `/canto-do-platinador/${post.slug}`
+          : `/noticias/${post.slug}`
 
   return (
     <Link href={postUrl} className="group">
@@ -29,7 +40,6 @@ export default function PostCard({ post }: PostCardProps) {
               <TrophyIcon rating={(post as any).rating} size="md" showLabel showDescription vertical />
             </div>
           )}
-          {/* Badge de tipo (REVIEW, GUIA, NOTÍCIA) removido */}
         </div>
         <div className="p-4">
           <h3 className="magazine-title text-lg line-clamp-2">{isReview ? (post as any).gameName : post.title}</h3>

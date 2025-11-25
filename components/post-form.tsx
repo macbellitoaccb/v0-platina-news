@@ -142,7 +142,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
         data = {
           ...baseData,
           subtitle: formData.subtitle,
-          additionalMedia: newsMedia.filter((media) => media.url.trim() !== ""),
+          newsMedia: newsMedia.filter((media) => media.url.trim() !== ""),
         }
       }
 
