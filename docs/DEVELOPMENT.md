@@ -11,7 +11,7 @@
 
 ### Extensões VS Code Recomendadas
 
-\`\`\`json
+```json
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",
@@ -20,7 +20,7 @@
     "ms-vscode.vscode-typescript-next"
   ]
 }
-\`\`\`
+```
 
 ## Estrutura do Código
 
@@ -28,7 +28,7 @@
 
 Os componentes seguem a estrutura:
 
-\`\`\`tsx
+```tsx
 // components/exemplo.tsx
 import { cn } from "@/lib/utils"
 
@@ -44,11 +44,11 @@ export default function Exemplo({ className }: ExemploProps) {
     </div>
   )
 }
-\`\`\`
+```
 
 ### Páginas (App Router)
 
-\`\`\`tsx
+```tsx
 // app/exemplo/page.tsx
 import { getData } from "@/lib/data"
 
@@ -61,11 +61,11 @@ export default async function ExemploPage() {
     </div>
   )
 }
-\`\`\`
+```
 
 ### Funções de Dados
 
-\`\`\`tsx
+```tsx
 // lib/data.ts
 export async function getData(): Promise<Data[]> {
   const supabase = createSafeSupabaseClient()
@@ -86,7 +86,7 @@ export async function getData(): Promise<Data[]> {
     return mockData
   }
 }
-\`\`\`
+```
 
 ## Convenções de Código
 
@@ -101,7 +101,7 @@ export async function getData(): Promise<Data[]> {
 
 Sempre use tipos explícitos:
 
-\`\`\`tsx
+```tsx
 // ✅ Bom
 interface Review {
   id: string
@@ -111,13 +111,13 @@ interface Review {
 
 // ❌ Evitar
 const review: any = {}
-\`\`\`
+```
 
 ### Tailwind CSS
 
 Use classes utilitárias e o helper `cn()`:
 
-\`\`\`tsx
+```tsx
 // ✅ Bom
 <div className={cn(
   "base-class",
@@ -127,35 +127,35 @@ Use classes utilitárias e o helper `cn()`:
 
 // ❌ Evitar
 <div className="base-class" style={{ color: 'red' }}>
-\`\`\`
+```
 
 ## Fluxo de Trabalho
 
 ### 1. Criar Nova Feature
 
-\`\`\`bash
+```bash
 git checkout -b feature/nome-da-feature
-\`\`\`
+```
 
 ### 2. Desenvolver
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 ### 3. Testar
 
-\`\`\`bash
+```bash
 npm run lint
 npm run build
-\`\`\`
+```
 
 ### 4. Commit
 
-\`\`\`bash
+```bash
 git add .
 git commit -m "feat: adiciona nova funcionalidade"
-\`\`\`
+```
 
 Padrões de commit:
 - `feat:` - Nova funcionalidade
@@ -168,9 +168,9 @@ Padrões de commit:
 
 ### 5. Push e PR
 
-\`\`\`bash
+```bash
 git push origin feature/nome-da-feature
-\`\`\`
+```
 
 Abra um Pull Request no GitHub.
 
@@ -180,10 +180,10 @@ Abra um Pull Request no GitHub.
 
 Use o prefixo `[v0]` para logs de debug:
 
-\`\`\`tsx
+```tsx
 console.log("[v0] Fetching data...")
 console.error("[v0] Error:", error)
-\`\`\`
+```
 
 ### React DevTools
 
@@ -198,7 +198,7 @@ Use o Network tab do navegador para debugar requisições ao Supabase.
 ### Otimizações
 
 1. **Imagens**: Use Next.js Image component
-\`\`\`tsx
+```tsx
 import Image from 'next/image'
 
 <Image 
@@ -207,21 +207,21 @@ import Image from 'next/image'
   height={600}
   alt="Description"
 />
-\`\`\`
+```
 
 2. **Lazy Loading**: Use dynamic imports
-\`\`\`tsx
+```tsx
 import dynamic from 'next/dynamic'
 
 const HeavyComponent = dynamic(() => import('./HeavyComponent'))
-\`\`\`
+```
 
 3. **Memoization**: Use React.memo para componentes pesados
-\`\`\`tsx
+```tsx
 const ExpensiveComponent = React.memo(({ data }) => {
   // renderização pesada
 })
-\`\`\`
+```
 
 ## Testes
 
@@ -237,23 +237,23 @@ Checklist antes de fazer commit:
 
 ### Testes Automatizados (Futuro)
 
-\`\`\`bash
+```bash
 # Instalar dependências de teste
 npm install -D @testing-library/react @testing-library/jest-dom jest
 
 # Rodar testes
 npm test
-\`\`\`
+```
 
 ## Troubleshooting Comum
 
 ### Erro: "Module not found"
 
-\`\`\`bash
+```bash
 # Limpar cache e reinstalar
 rm -rf node_modules .next
 npm install
-\`\`\`
+```
 
 ### Erro: "Hydration failed"
 

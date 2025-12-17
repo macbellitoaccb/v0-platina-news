@@ -60,26 +60,26 @@ Portal completo de reviews, notícias e guias de videogames com foco em troféus
 
 ### Passo 1: Clonar o Repositório
 
-\`\`\`bash
+```bash
 git clone https://github.com/seu-usuario/platina-news.git
 cd platina-news
-\`\`\`
+```
 
 ### Passo 2: Instalar Dependências
 
-\`\`\`bash
+```bash
 npm install
 # ou
 yarn install
 # ou
 pnpm install
-\`\`\`
+```
 
 ### Passo 3: Configurar Variáveis de Ambiente
 
 Crie um arquivo `.env.local` na raiz do projeto:
 
-\`\`\`env
+```env
 # Supabase
 SUPABASE_URL=sua_url_do_supabase
 SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
@@ -88,7 +88,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key
 
 # Admin (opcional)
 ENABLE_ADMIN=true
-\`\`\`
+```
 
 **Como obter as chaves do Supabase:**
 1. Acesse [supabase.com](https://supabase.com)
@@ -100,20 +100,20 @@ ENABLE_ADMIN=true
 
 Execute o script SQL no Supabase (veja `docs/DATABASE.md` para o schema completo):
 
-\`\`\`sql
+```sql
 -- Copie e execute o conteúdo de docs/database-schema.sql
 -- no SQL Editor do Supabase
-\`\`\`
+```
 
 ### Passo 5: Rodar Localmente
 
-\`\`\`bash
+```bash
 npm run dev
 # ou
 yarn dev
 # ou
 pnpm dev
-\`\`\`
+```
 
 Acesse [http://localhost:3000](http://localhost:3000)
 
@@ -121,7 +121,7 @@ Acesse [http://localhost:3000](http://localhost:3000)
 
 ### Estrutura de Pastas
 
-\`\`\`
+```
 platina-news/
 ├── app/                    # Páginas Next.js (App Router)
 │   ├── admin/             # Painel administrativo
@@ -142,7 +142,7 @@ platina-news/
 ├── public/               # Arquivos estáticos
 ├── docs/                 # Documentação
 └── ...                   # Arquivos de configuração
-\`\`\`
+```
 
 ### Variáveis de Ambiente
 
@@ -228,11 +228,11 @@ O projeto é compatível com qualquer plataforma que suporte Next.js:
 
 ### Backup do Banco de Dados
 
-\`\`\`bash
+```bash
 # Via Supabase Dashboard
 # Settings > Database > Backups
 # Ou use pg_dump para backup manual
-\`\`\`
+```
 
 ## 📚 Documentação Adicional
 

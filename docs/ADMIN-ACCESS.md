@@ -28,7 +28,7 @@ O código original de autenticação está comentado no arquivo `middleware.ts`.
 
 #### Exemplo de Middleware com Autenticação
 
-\`\`\`typescript
+```typescript
 // middleware.ts
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/admin/:path*"],
 }
-\`\`\`
+```
 
 ### Sistema de Roles
 
@@ -92,7 +92,7 @@ Quando configurar autenticação:
    - `role`: "admin"
    - Outros dados do perfil
 
-\`\`\`sql
+```sql
 -- Exemplo de query para criar admin
 INSERT INTO authors (id, name, user_id, role, avatar)
 VALUES (
@@ -102,7 +102,7 @@ VALUES (
   'admin',
   'url-do-avatar'
 );
-\`\`\`
+```
 
 ### Alternativas de Autenticação
 

@@ -10,7 +10,7 @@ O PlatinaNews usa PostgreSQL via Supabase com 11 tabelas principais para gerenci
 
 Armazena reviews de jogos com sistema de troféus.
 
-\`\`\`sql
+```sql
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title VARCHAR NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE reviews (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-\`\`\`
+```
 
 **Campos:**
 - `id` - UUID único
@@ -43,7 +43,7 @@ CREATE TABLE reviews (
 
 Armazena notícias sobre games.
 
-\`\`\`sql
+```sql
 CREATE TABLE news (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title VARCHAR NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE news (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-\`\`\`
+```
 
 **Campos:**
 - `id` - UUID único
@@ -70,7 +70,7 @@ CREATE TABLE news (
 
 Armazena guias de platina com passos detalhados.
 
-\`\`\`sql
+```sql
 CREATE TABLE guides (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title VARCHAR NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE guides (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-\`\`\`
+```
 
 **Campos:**
 - `id` - UUID único
@@ -103,7 +103,7 @@ CREATE TABLE guides (
 
 Armazena informações dos autores/editores.
 
-\`\`\`sql
+```sql
 CREATE TABLE authors (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE authors (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-\`\`\`
+```
 
 **Campos:**
 - `id` - UUID único
@@ -136,65 +136,65 @@ CREATE TABLE authors (
 
 Armazena gêneros de jogos.
 
-\`\`\`sql
+```sql
 CREATE TABLE genres (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR UNIQUE NOT NULL
 );
-\`\`\`
+```
 
 ### Tabela: `tags`
 
 Armazena tags para categorização.
 
-\`\`\`sql
+```sql
 CREATE TABLE tags (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR UNIQUE NOT NULL
 );
-\`\`\`
+```
 
 ### Tabela: `review_genres`
 
 Relação muitos-para-muitos entre reviews e gêneros.
 
-\`\`\`sql
+```sql
 CREATE TABLE review_genres (
   review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
   genre_id UUID REFERENCES genres(id) ON DELETE CASCADE,
   PRIMARY KEY (review_id, genre_id)
 );
-\`\`\`
+```
 
 ### Tabela: `review_tags`
 
 Relação muitos-para-muitos entre reviews e tags.
 
-\`\`\`sql
+```sql
 CREATE TABLE review_tags (
   review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
   tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
   PRIMARY KEY (review_id, tag_id)
 );
-\`\`\`
+```
 
 ### Tabela: `guide_tags`
 
 Relação muitos-para-muitos entre guias e tags.
 
-\`\`\`sql
+```sql
 CREATE TABLE guide_tags (
   guide_id UUID REFERENCES guides(id) ON DELETE CASCADE,
   tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
   PRIMARY KEY (guide_id, tag_id)
 );
-\`\`\`
+```
 
 ### Tabela: `additional_images`
 
 Armazena imagens adicionais dos reviews.
 
-\`\`\`sql
+```sql
 CREATE TABLE additional_images (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
@@ -202,13 +202,13 @@ CREATE TABLE additional_images (
   caption TEXT,
   display_order INTEGER DEFAULT 0
 );
-\`\`\`
+```
 
 ### Tabela: `guide_steps`
 
 Armazena passos dos guias.
 
-\`\`\`sql
+```sql
 CREATE TABLE guide_steps (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   guide_id UUID REFERENCES guides(id) ON DELETE CASCADE,
@@ -218,11 +218,11 @@ CREATE TABLE guide_steps (
   video VARCHAR,
   display_order INTEGER DEFAULT 0
 );
-\`\`\`
+```
 
 ## Índices Recomendados
 
-\`\`\`sql
+```sql
 -- Índices para melhor performance
 CREATE INDEX idx_reviews_slug ON reviews(slug);
 CREATE INDEX idx_reviews_rating ON reviews(rating);
@@ -232,11 +232,11 @@ CREATE INDEX idx_news_created_at ON news(created_at DESC);
 CREATE INDEX idx_guides_slug ON guides(slug);
 CREATE INDEX idx_guides_created_at ON guides(created_at DESC);
 CREATE INDEX idx_authors_name ON authors(name);
-\`\`\`
+```
 
 ## Políticas de Segurança (RLS)
 
-\`\`\`sql
+```sql
 -- Habilitar RLS
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE news ENABLE ROW LEVEL SECURITY;
@@ -255,7 +255,7 @@ CREATE POLICY "Authenticated users can update" ON reviews FOR UPDATE USING (auth
 CREATE POLICY "Authenticated users can delete" ON reviews FOR DELETE USING (auth.role() = 'authenticated');
 
 -- Repetir para news, guides e authors
-\`\`\`
+```
 
 ## Migrations
 
@@ -267,7 +267,7 @@ Execute o script completo em `docs/database-schema.sql` no SQL Editor do Supabas
 
 Para popular o banco com dados de exemplo:
 
-\`\`\`sql
+```sql
 -- Inserir autor de exemplo
 INSERT INTO authors (name, avatar, psn_id, bio) VALUES
 ('João Silva', '/avatars/joao.jpg', 'joaosilva_psn', 'Editor chefe do PlatinaNews');
@@ -279,23 +279,23 @@ INSERT INTO genres (name) VALUES
 -- Inserir tags
 INSERT INTO tags (name) VALUES
 ('PlayStation 5'), ('Exclusivo'), ('Multiplayer'), ('História'), ('Gráficos');
-\`\`\`
+```
 
 ## Backup e Restore
 
 ### Backup Manual
 
-\`\`\`bash
+```bash
 # Via pg_dump
 pg_dump -h db.xxx.supabase.co -U postgres -d postgres > backup.sql
-\`\`\`
+```
 
 ### Restore
 
-\`\`\`bash
+```bash
 # Via psql
 psql -h db.xxx.supabase.co -U postgres -d postgres < backup.sql
-\`\`\`
+```
 
 ### Backup Automático
 
@@ -306,7 +306,7 @@ O Supabase faz backups automáticos diários. Acesse:
 
 ### Buscar reviews com autor e gêneros
 
-\`\`\`sql
+```sql
 SELECT 
   r.*,
   a.name as author_name,
@@ -317,11 +317,11 @@ LEFT JOIN review_genres rg ON r.id = rg.review_id
 LEFT JOIN genres g ON rg.genre_id = g.id
 GROUP BY r.id, a.name
 ORDER BY r.created_at DESC;
-\`\`\`
+```
 
 ### Contar posts por autor
 
-\`\`\`sql
+```sql
 SELECT 
   a.name,
   COUNT(DISTINCT r.id) as reviews_count,
@@ -332,11 +332,11 @@ LEFT JOIN reviews r ON a.id = r.author_id
 LEFT JOIN news n ON a.id = n.author_id
 LEFT JOIN guides g ON a.id = g.author_id
 GROUP BY a.id, a.name;
-\`\`\`
+```
 
 ### Reviews por rating
 
-\`\`\`sql
+```sql
 SELECT 
   rating,
   COUNT(*) as count
@@ -349,7 +349,7 @@ ORDER BY
     WHEN 'silver' THEN 3
     WHEN 'bronze' THEN 4
   END;
-\`\`\`
+```
 
 ## Troubleshooting
 

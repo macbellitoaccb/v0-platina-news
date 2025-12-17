@@ -8,9 +8,9 @@
 
 Busca todos os reviews do banco de dados.
 
-\`\`\`tsx
+```tsx
 const reviews = await getReviews()
-\`\`\`
+```
 
 **Retorna:** Array de reviews ordenados por data de criação (mais recentes primeiro).
 
@@ -22,9 +22,9 @@ const reviews = await getReviews()
 
 Busca um review específico pelo slug.
 
-\`\`\`tsx
+```tsx
 const review = await getReviewBySlug("the-last-of-us-part-ii")
-\`\`\`
+```
 
 **Parâmetros:**
 - `slug` - URL slug do review
@@ -37,9 +37,9 @@ const review = await getReviewBySlug("the-last-of-us-part-ii")
 
 Busca um review específico pelo ID.
 
-\`\`\`tsx
+```tsx
 const review = await getReviewById("uuid-aqui")
-\`\`\`
+```
 
 **Parâmetros:**
 - `id` - UUID do review
@@ -52,7 +52,7 @@ const review = await getReviewById("uuid-aqui")
 
 Salva ou atualiza um review.
 
-\`\`\`tsx
+```tsx
 await saveReview({
   id: "uuid-ou-undefined",
   title: "Título do Review",
@@ -67,7 +67,7 @@ await saveReview({
   platinaGuide: { difficulty: "medium", time: "20h" },
   additionalImages: []
 })
-\`\`\`
+```
 
 **Parâmetros:**
 - `review` - Objeto Review completo
@@ -82,9 +82,9 @@ await saveReview({
 
 Deleta um review.
 
-\`\`\`tsx
+```tsx
 await deleteReview("uuid-aqui")
-\`\`\`
+```
 
 **Parâmetros:**
 - `id` - UUID do review
@@ -97,9 +97,9 @@ await deleteReview("uuid-aqui")
 
 Busca todas as notícias.
 
-\`\`\`tsx
+```tsx
 const news = await getNews()
-\`\`\`
+```
 
 **Retorna:** Array de notícias ordenadas por data.
 
@@ -109,9 +109,9 @@ const news = await getNews()
 
 Busca uma notícia pelo slug.
 
-\`\`\`tsx
+```tsx
 const news = await getNewsBySlug("ps5-pro-lancamento")
-\`\`\`
+```
 
 ---
 
@@ -125,7 +125,7 @@ Busca uma notícia pelo ID.
 
 Salva ou atualiza uma notícia.
 
-\`\`\`tsx
+```tsx
 await saveNews({
   id: "uuid-ou-undefined",
   title: "Título da Notícia",
@@ -134,7 +134,7 @@ await saveNews({
   image: "/images/news.jpg",
   author_id: "uuid-do-autor"
 })
-\`\`\`
+```
 
 ---
 
@@ -150,9 +150,9 @@ Deleta uma notícia.
 
 Busca todos os guias.
 
-\`\`\`tsx
+```tsx
 const guides = await getGuides()
-\`\`\`
+```
 
 ---
 
@@ -172,7 +172,7 @@ Busca um guia pelo ID.
 
 Salva ou atualiza um guia.
 
-\`\`\`tsx
+```tsx
 await saveGuide({
   id: "uuid-ou-undefined",
   title: "Guia Platina",
@@ -194,7 +194,7 @@ await saveGuide({
     }
   ]
 })
-\`\`\`
+```
 
 ---
 
@@ -210,9 +210,9 @@ Deleta um guia.
 
 Busca todos os autores.
 
-\`\`\`tsx
+```tsx
 const authors = await getAuthors()
-\`\`\`
+```
 
 ---
 
@@ -232,7 +232,7 @@ Busca um autor pelo user_id (para autenticação).
 
 Salva ou atualiza um autor.
 
-\`\`\`tsx
+```tsx
 const authorId = await saveAuthor({
   id: "uuid-ou-undefined",
   name: "Nome do Autor",
@@ -244,7 +244,7 @@ const authorId = await saveAuthor({
   user_id: "uuid-do-usuario",
   role: "editor"
 })
-\`\`\`
+```
 
 **Retorna:** UUID do autor criado/atualizado.
 
@@ -262,9 +262,9 @@ Deleta um autor.
 
 Busca todos os posts (reviews + notícias + guias) ordenados por data.
 
-\`\`\`tsx
+```tsx
 const allPosts = await getAllPosts()
-\`\`\`
+```
 
 **Retorna:** Array combinado de todos os tipos de posts.
 
@@ -274,7 +274,7 @@ const allPosts = await getAllPosts()
 
 ### Review
 
-\`\`\`typescript
+```typescript
 interface Review {
   id: string
   title: string
@@ -301,11 +301,11 @@ interface Review {
     display_order: number
   }[]
 }
-\`\`\`
+```
 
 ### News
 
-\`\`\`typescript
+```typescript
 interface News {
   id: string
   title: string
@@ -318,11 +318,11 @@ interface News {
   author?: Author
   author_id?: string
 }
-\`\`\`
+```
 
 ### Guide
 
-\`\`\`typescript
+```typescript
 interface Guide {
   id: string
   title: string
@@ -347,11 +347,11 @@ interface Guide {
     display_order: number
   }[]
 }
-\`\`\`
+```
 
 ### Author
 
-\`\`\`typescript
+```typescript
 interface Author {
   id: string
   name: string
@@ -365,7 +365,7 @@ interface Author {
   created_at?: string
   updated_at?: string
 }
-\`\`\`
+```
 
 ---
 
@@ -375,11 +375,11 @@ interface Author {
 
 Converte texto em slug para URLs.
 
-\`\`\`tsx
+```tsx
 import { slugify } from "@/lib/utils"
 
 const slug = slugify("The Last of Us Part II") // "the-last-of-us-part-ii"
-\`\`\`
+```
 
 ---
 
@@ -387,7 +387,7 @@ const slug = slugify("The Last of Us Part II") // "the-last-of-us-part-ii"
 
 Retorna informações sobre um troféu.
 
-\`\`\`tsx
+```tsx
 import { getTrophyInfo } from "@/lib/utils"
 
 const info = getTrophyInfo("platinum")
@@ -396,7 +396,7 @@ const info = getTrophyInfo("platinum")
 //   color: "#e5e4e2",
 //   description: "Obra-prima"
 // }
-\`\`\`
+```
 
 ---
 
@@ -404,7 +404,7 @@ const info = getTrophyInfo("platinum")
 
 Combina classes CSS condicionalmente.
 
-\`\`\`tsx
+```tsx
 import { cn } from "@/lib/utils"
 
 const className = cn(
@@ -412,13 +412,13 @@ const className = cn(
   isActive && "active-class",
   props.className
 )
-\`\`\`
+```
 
 ---
 
 ## Variáveis de Ambiente
 
-\`\`\`env
+```env
 # Supabase
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
@@ -427,7 +427,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
 
 # Admin
 ENABLE_ADMIN=true
-\`\`\`
+```
 
 ---
 

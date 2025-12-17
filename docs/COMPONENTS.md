@@ -4,7 +4,7 @@
 
 ### Button
 
-\`\`\`tsx
+```tsx
 import { Button } from "@/components/ui/button"
 
 <Button variant="default">Clique aqui</Button>
@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button"
 <Button variant="outline">Outline</Button>
 <Button variant="ghost">Ghost</Button>
 <Button variant="link">Link</Button>
-\`\`\`
+```
 
 ### Card
 
-\`\`\`tsx
+```tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 <Card>
@@ -27,11 +27,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
     Conteúdo do card
   </CardContent>
 </Card>
-\`\`\`
+```
 
 ### Input
 
-\`\`\`tsx
+```tsx
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -39,11 +39,11 @@ import { Label } from "@/components/ui/label"
   <Label htmlFor="email">Email</Label>
   <Input id="email" type="email" placeholder="seu@email.com" />
 </div>
-\`\`\`
+```
 
 ### Select
 
-\`\`\`tsx
+```tsx
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 <Select>
@@ -55,7 +55,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     <SelectItem value="2">Opção 2</SelectItem>
   </SelectContent>
 </Select>
-\`\`\`
+```
 
 ## Componentes Customizados
 
@@ -63,7 +63,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 Exibe um card de review com troféu.
 
-\`\`\`tsx
+```tsx
 import ReviewCard from "@/components/review-card"
 
 <ReviewCard 
@@ -71,7 +71,7 @@ import ReviewCard from "@/components/review-card"
   variant="default" // ou "cover", "horizontal"
   featured={false}
 />
-\`\`\`
+```
 
 **Props:**
 - `review: Review` - Dados do review
@@ -82,14 +82,14 @@ import ReviewCard from "@/components/review-card"
 
 Exibe um card de notícia.
 
-\`\`\`tsx
+```tsx
 import NewsCard from "@/components/news-card"
 
 <NewsCard 
   news={news}
   variant="default" // ou "cover", "minimal"
 />
-\`\`\`
+```
 
 **Props:**
 - `news: News` - Dados da notícia
@@ -99,51 +99,51 @@ import NewsCard from "@/components/news-card"
 
 Card genérico para reviews ou notícias.
 
-\`\`\`tsx
+```tsx
 import PostCard from "@/components/post-card"
 
 <PostCard post={post} />
-\`\`\`
+```
 
 ### Header
 
 Cabeçalho do site com navegação.
 
-\`\`\`tsx
+```tsx
 import Header from "@/components/header"
 
 <Header />
-\`\`\`
+```
 
 ### Footer
 
 Rodapé do site.
 
-\`\`\`tsx
+```tsx
 import Footer from "@/components/footer"
 
 <Footer />
-\`\`\`
+```
 
 ### AuthorCard
 
 Exibe informações do autor.
 
-\`\`\`tsx
+```tsx
 import AuthorCard from "@/components/author-card"
 
 <AuthorCard author={author} />
-\`\`\`
+```
 
 ### TrophyIcon
 
 Ícone de troféu com cor baseada no rating.
 
-\`\`\`tsx
+```tsx
 import TrophyIcon from "@/components/trophy-icon"
 
 <TrophyIcon rating="platinum" className="h-6 w-6" />
-\`\`\`
+```
 
 **Props:**
 - `rating: "bronze" | "silver" | "gold" | "platinum"` - Tipo de troféu
@@ -155,7 +155,7 @@ import TrophyIcon from "@/components/trophy-icon"
 
 Formulário para criar/editar reviews e notícias.
 
-\`\`\`tsx
+```tsx
 import PostForm from "@/components/post-form"
 
 <PostForm 
@@ -163,33 +163,33 @@ import PostForm from "@/components/post-form"
   initialData={existingPost}
   onSubmit={handleSubmit}
 />
-\`\`\`
+```
 
 ### GuideForm
 
 Formulário para criar/editar guias.
 
-\`\`\`tsx
+```tsx
 import GuideForm from "@/components/guide-form"
 
 <GuideForm 
   initialData={existingGuide}
   onSubmit={handleSubmit}
 />
-\`\`\`
+```
 
 ### AuthorForm
 
 Formulário para criar/editar autores.
 
-\`\`\`tsx
+```tsx
 import AuthorForm from "@/components/author-form"
 
 <AuthorForm 
   initialData={existingAuthor}
   onSubmit={handleSubmit}
 />
-\`\`\`
+```
 
 ## Hooks Customizados
 
@@ -197,7 +197,7 @@ import AuthorForm from "@/components/author-form"
 
 Detecta se está em dispositivo móvel.
 
-\`\`\`tsx
+```tsx
 import { useMobile } from "@/hooks/use-mobile"
 
 function Component() {
@@ -205,13 +205,13 @@ function Component() {
   
   return isMobile ? <MobileView /> : <DesktopView />
 }
-\`\`\`
+```
 
 ### useToast
 
 Exibe notificações toast.
 
-\`\`\`tsx
+```tsx
 import { useToast } from "@/hooks/use-toast"
 
 function Component() {
@@ -226,7 +226,7 @@ function Component() {
   
   return <button onClick={handleClick}>Clique</button>
 }
-\`\`\`
+```
 
 ## Utilitários
 
@@ -234,7 +234,7 @@ function Component() {
 
 Combina classes CSS condicionalmente.
 
-\`\`\`tsx
+```tsx
 import { cn } from "@/lib/utils"
 
 <div className={cn(
@@ -242,34 +242,34 @@ import { cn } from "@/lib/utils"
   isActive && "active-class",
   className
 )} />
-\`\`\`
+```
 
 ### slugify()
 
 Converte texto em slug para URLs.
 
-\`\`\`tsx
+```tsx
 import { slugify } from "@/lib/utils"
 
 const slug = slugify("Meu Título Aqui") // "meu-titulo-aqui"
-\`\`\`
+```
 
 ### getTrophyInfo()
 
 Retorna informações sobre um troféu.
 
-\`\`\`tsx
+```tsx
 import { getTrophyInfo } from "@/lib/utils"
 
 const info = getTrophyInfo("platinum")
 // { label: "Platina", color: "#e5e4e2", description: "Obra-prima" }
-\`\`\`
+```
 
 ## Estilos Globais
 
 ### Classes CSS Customizadas
 
-\`\`\`css
+```css
 /* Gradiente gamer */
 .gamer-gradient {
   @apply bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent;
@@ -296,13 +296,13 @@ const info = getTrophyInfo("platinum")
 .trophy-silver { color: #c0c0c0; }
 .trophy-gold { color: #ffd700; }
 .trophy-platinum { color: #e5e4e2; }
-\`\`\`
+```
 
 ## Exemplos de Uso
 
 ### Página de Review
 
-\`\`\`tsx
+```tsx
 import { getReviewBySlug } from "@/lib/data"
 import ReviewCard from "@/components/review-card"
 import AuthorCard from "@/components/author-card"
@@ -328,11 +328,11 @@ export default async function ReviewPage({ params }: { params: { slug: string } 
     </div>
   )
 }
-\`\`\`
+```
 
 ### Lista de Reviews
 
-\`\`\`tsx
+```tsx
 import { getReviews } from "@/lib/data"
 import ReviewCard from "@/components/review-card"
 
@@ -347,7 +347,7 @@ export default async function ReviewsPage() {
     </div>
   )
 }
-\`\`\`
+```
 
 ---
 

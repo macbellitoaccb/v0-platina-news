@@ -40,7 +40,7 @@ O autor "Admin" é criado automaticamente com:
 ### Banco de Dados
 
 O autor padrão é armazenado na tabela `authors` do Supabase:
-\`\`\`sql
+```sql
 -- O sistema cria automaticamente se não existir
 INSERT INTO authors (id, name, avatar, psn_id, bio, role)
 VALUES (
@@ -51,7 +51,7 @@ VALUES (
   'Equipe PlatinaNews',
   'admin'
 );
-\`\`\`
+```
 
 ## Adicionando Sistema de Autores Completo (Futuro)
 
@@ -74,17 +74,17 @@ Se você quiser adicionar um sistema de autores completo no futuro:
 ### Conteúdo sem autor
 
 Se você tem conteúdo antigo sem autor:
-\`\`\`sql
+```sql
 -- Atualizar todos os posts sem autor para usar o autor padrão
 UPDATE reviews SET author_id = (SELECT id FROM authors WHERE name = 'Admin' LIMIT 1) WHERE author_id IS NULL;
 UPDATE news SET author_id = (SELECT id FROM authors WHERE name = 'Admin' LIMIT 1) WHERE author_id IS NULL;
 UPDATE guides SET author_id = (SELECT id FROM authors WHERE name = 'Admin' LIMIT 1) WHERE author_id IS NULL;
-\`\`\`
+```
 
 ### Criar autor padrão manualmente
 
 Se precisar criar o autor padrão manualmente:
-\`\`\`sql
+```sql
 INSERT INTO authors (id, name, avatar, psn_id, bio, role, created_at, updated_at)
 VALUES (
   gen_random_uuid(),
