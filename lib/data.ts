@@ -1,5 +1,18 @@
 import { createServerSupabaseClient } from "./supabase"
-import type { Review, News, Guide, AllPosts, Author, DbReview, DbNews, DbGuide, Article, PlatinadorTip } from "./types"
+import type {
+  Review,
+  News,
+  Guide,
+  AllPosts,
+  Author,
+  DbReview,
+  DbNews,
+  DbGuide,
+  Article,
+  PlatinadorTip,
+  DbArticle,
+  DbPlatinadorTip,
+} from "./types"
 import { v4 as uuidv4 } from "uuid"
 import { retrySupabaseOperation } from "./supabase-helpers"
 // Mock data imports
@@ -35,6 +48,56 @@ function createSafeSupabaseClient() {
     console.warn("Failed to create Supabase client:", error)
     return null
   }
+}
+
+// This retrySupabaseOperation function is defined in supabase-helpers.ts.
+// It's included here to avoid linting errors, but ideally, it should be imported and used directly.
+// If this is a standalone file, uncomment and use the function below.
+/*
+async function retrySupabaseOperation<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  maxRetries: number = 2, // Reduzido de 4 para 2
+  initialDelay: number = 500 // Reduzido de 1000ms para 500ms
+): Promise<T> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[v0] ${operationName} - Attempt ${attempt}/${maxRetries}`)
+      const result = await operation()
+      return result
+    } catch (error) {
+      lastError = error
+      console.log(`[v0] ${operationName} - Attempt ${attempt} failed:`, error)
+
+      if (attempt < maxRetries) {
+        const delay = initialDelay * attempt
+        console.log(`[v0] ${operationName} - Waiting ${delay}ms before retry...`)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  console.log(`[v0] ${operationName} - All ${maxRetries} attempts failed`)
+  throw lastError
+}
+*/
+
+const cacheStore: { [key: string]: { data: any; timestamp: number } } = {}
+const CACHE_DURATION = 30000 // 30 segundos
+
+function getCachedData<T>(key: string): T | null {
+  const cached = cacheStore[key]
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log(`[v0] Using cached data for ${key}`)
+    return cached.data as T
+  }
+  return null
+}
+
+function setCachedData(key: string, data: any) {
+  cacheStore[key] = { data, timestamp: Date.now() }
 }
 
 // Function to convert a review from database to application format
@@ -559,6 +622,9 @@ async function saveTag(name: string): Promise<string> {
 export async function getReviews(): Promise<Review[]> {
   console.log("Fetching reviews...")
 
+  const cached = getCachedData<Review[]>("reviews")
+  if (cached) return cached
+
   const supabase = createSafeSupabaseClient()
 
   if (!supabase) {
@@ -588,34 +654,18 @@ export async function getReviews(): Promise<Review[]> {
         try {
           return await convertDbReviewToReview(dbReview, supabase)
         } catch (conversionError) {
-          console.warn("Error converting review:", conversionError)
-          return {
-            id: dbReview.id,
-            title: dbReview.title,
-            slug: dbReview.slug,
-            content: dbReview.content,
-            image: dbReview.image,
-            type: "review" as const,
-            createdAt: dbReview.created_at,
-            updatedAt: dbReview.updated_at,
-            rating: dbReview.rating,
-            gameName: dbReview.game_name,
-            genres: [],
-            tags: [],
-            author_id: dbReview.author_id,
-            platinaGuide: dbReview.platina_guide,
-            additionalImages: [],
-            youtubeUrl: dbReview.youtube_url, // Adicionar campo youtubeUrl
-          }
+          console.error("Error converting review:", conversionError)
+          return null
         }
       }),
     )
 
-    console.log("Successfully converted reviews")
-    return reviews
+    const validReviews = reviews.filter((r): r is Review => r !== null)
+
+    setCachedData("reviews", validReviews)
+    return validReviews
   } catch (error) {
     console.error("Supabase error fetching reviews:", error)
-    console.log("Falling back to mock data for reviews")
     return sampleReviews
   }
 }
@@ -623,6 +673,9 @@ export async function getReviews(): Promise<Review[]> {
 // Function to fetch all news
 export async function getNews(): Promise<News[]> {
   console.log("Fetching news...")
+
+  const cached = getCachedData<News[]>("news")
+  if (cached) return cached
 
   const supabase = createSafeSupabaseClient()
 
@@ -653,30 +706,18 @@ export async function getNews(): Promise<News[]> {
         try {
           return await convertDbNewsToNews(dbNewsItem, supabase)
         } catch (conversionError) {
-          console.warn("Error converting news:", conversionError)
-          return {
-            id: dbNewsItem.id,
-            title: dbNewsItem.title,
-            slug: dbNewsItem.slug,
-            subtitle: dbNewsItem.subtitle, // Adicionar campo subtitle
-            content: dbNewsItem.content,
-            image: dbNewsItem.image,
-            type: "news" as const,
-            createdAt: dbNewsItem.created_at,
-            updatedAt: dbNewsItem.updated_at,
-            author_id: dbNewsItem.author_id,
-            youtubeUrl: dbNewsItem.youtubeUrl, // Adicionar campo youtubeUrl
-            newsMedia: [], // Adicionar campo newsMedia
-          }
+          console.error("Error converting news:", conversionError)
+          return null
         }
       }),
     )
 
-    console.log("Successfully converted news")
-    return news
+    const validNews = news.filter((n): n is News => n !== null)
+
+    setCachedData("news", validNews)
+    return validNews
   } catch (error) {
     console.error("Supabase error fetching news:", error)
-    console.log("Falling back to mock data for news")
     return sampleNews
   }
 }
@@ -684,6 +725,9 @@ export async function getNews(): Promise<News[]> {
 // Function to fetch all guides
 export async function getGuides(): Promise<Guide[]> {
   console.log("Fetching guides...")
+
+  const cached = getCachedData<Guide[]>("guides")
+  if (cached) return cached
 
   const supabase = createSafeSupabaseClient()
 
@@ -714,32 +758,18 @@ export async function getGuides(): Promise<Guide[]> {
         try {
           return await convertDbGuideToGuide(dbGuide, supabase)
         } catch (conversionError) {
-          console.warn("Error converting guide:", conversionError)
-          return {
-            id: dbGuide.id,
-            title: dbGuide.title,
-            slug: dbGuide.slug,
-            content: dbGuide.content,
-            image: dbGuide.image,
-            type: "guide" as const,
-            createdAt: dbGuide.created_at,
-            updatedAt: dbGuide.updated_at,
-            gameName: dbGuide.game_name,
-            difficulty: dbGuide.difficulty,
-            estimatedTime: dbGuide.estimated_time,
-            author_id: dbGuide.author_id,
-            tags: [],
-            steps: [],
-          }
+          console.error("Error converting guide:", conversionError)
+          return null
         }
       }),
     )
 
-    console.log("Successfully converted guides")
-    return guides
+    const validGuides = guides.filter((g): g is Guide => g !== null)
+
+    setCachedData("guides", validGuides)
+    return validGuides
   } catch (error) {
     console.error("Supabase error fetching guides:", error)
-    console.log("Falling back to mock data for guides")
     return [sampleGuide]
   }
 }
@@ -1350,16 +1380,97 @@ export function seedDatabaseIfEmpty() {
   // No-op in this version
 }
 
+// Function to convert article from database to application format
+async function convertDbArticleToArticle(dbArticle: DbArticle, supabase: any): Promise<Article> {
+  try {
+    let author: Author | undefined
+    if (dbArticle.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbArticle.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    // Fetch article media
+    let articleMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("article_media")
+        .select("*")
+        .eq("article_id", dbArticle.id)
+        .order("display_order", { ascending: true })
+
+      articleMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching article media:", error)
+    }
+
+    return {
+      id: dbArticle.id,
+      title: dbArticle.title,
+      slug: dbArticle.slug,
+      subtitle: dbArticle.subtitle,
+      content: dbArticle.content,
+      image: dbArticle.image,
+      category: dbArticle.category,
+      type: "article" as const,
+      createdAt: dbArticle.created_at,
+      updatedAt: dbArticle.updated_at,
+      author,
+      author_id: dbArticle.author_id,
+      articleMedia, // Added articleMedia to response
+    }
+  } catch (error) {
+    console.warn("Error converting article:", error)
+    return {
+      id: dbArticle.id,
+      title: dbArticle.title,
+      slug: dbArticle.slug,
+      subtitle: dbArticle.subtitle,
+      content: dbArticle.content,
+      image: dbArticle.image,
+      category: dbArticle.category,
+      type: "article" as const,
+      createdAt: dbArticle.created_at,
+      updatedAt: dbArticle.updated_at,
+      author_id: dbArticle.author_id,
+    }
+  }
+}
+
 export async function getArticles(): Promise<Article[]> {
   console.log("Fetching articles...")
+
+  const cached = getCachedData<Article[]>("articles")
+  if (cached) return cached
+
   const supabase = createSafeSupabaseClient()
 
   if (!supabase) {
-    console.log("Supabase not available, returning empty articles array")
+    console.log("Using mock data for articles - Supabase not available")
     return []
   }
 
   try {
+    console.log("Attempting to fetch articles from Supabase...")
+
     const dbArticles = await retrySupabaseOperation(async () => {
       const { data, error } = await supabase.from("articles").select("*").order("created_at", { ascending: false })
       if (error) throw error
@@ -1374,87 +1485,20 @@ export async function getArticles(): Promise<Article[]> {
     console.log(`Found ${dbArticles.length} articles in database`)
 
     const articles = await Promise.all(
-      dbArticles.map(async (dbArticle: any) => {
+      dbArticles.map(async (dbArticle: DbArticle) => {
         try {
-          let author: Author | undefined
-          if (dbArticle.author_id) {
-            const { data: authorData } = await supabase
-              .from("authors")
-              .select("*")
-              .eq("id", dbArticle.author_id)
-              .single()
-            if (authorData) {
-              author = {
-                id: authorData.id,
-                name: authorData.name,
-                avatar: authorData.avatar,
-                psnId: authorData.psn_id,
-                instagram: authorData.instagram,
-                twitter: authorData.twitter,
-                bio: authorData.bio,
-                user_id: authorData.user_id,
-                role: authorData.role,
-              }
-            }
-          }
-
-          // Fetch article media
-          let articleMedia: any[] = []
-          try {
-            const { data: mediaData } = await supabase
-              .from("article_media")
-              .select("*")
-              .eq("article_id", dbArticle.id)
-              .order("display_order", { ascending: true })
-
-            articleMedia =
-              mediaData?.map((media: any) => ({
-                id: media.id,
-                type: media.type,
-                url: media.url,
-                caption: media.caption,
-                display_order: media.display_order,
-              })) || []
-          } catch (error) {
-            console.warn("Error fetching article media:", error)
-          }
-
-          return {
-            id: dbArticle.id,
-            title: dbArticle.title,
-            slug: dbArticle.slug,
-            subtitle: dbArticle.subtitle,
-            content: dbArticle.content,
-            image: dbArticle.image,
-            category: dbArticle.category,
-            type: "article" as const,
-            createdAt: dbArticle.created_at,
-            updatedAt: dbArticle.updated_at,
-            author,
-            author_id: dbArticle.author_id,
-            articleMedia, // Added articleMedia to response
-          }
-        } catch (error) {
-          console.warn("Error converting article:", error)
-          return {
-            id: dbArticle.id,
-            title: dbArticle.title,
-            slug: dbArticle.slug,
-            subtitle: dbArticle.subtitle,
-            content: dbArticle.content,
-            image: dbArticle.image,
-            category: dbArticle.category,
-            type: "article" as const,
-            createdAt: dbArticle.created_at,
-            updatedAt: dbArticle.updated_at,
-            author_id: dbArticle.author_id,
-          }
+          return await convertDbArticleToArticle(dbArticle, supabase)
+        } catch (conversionError) {
+          console.error("Error converting article:", conversionError)
+          return null
         }
       }),
     )
 
-    console.log("Successfully converted articles")
-    return articles
+    const validArticles = articles.filter((a): a is Article => a !== null)
+
+    setCachedData("articles", validArticles)
+    return validArticles
   } catch (error) {
     console.error("Supabase error fetching articles:", error)
     return []
@@ -1691,21 +1735,103 @@ export async function deleteArticle(id: string): Promise<void> {
   }
 }
 
+// Function to convert platinador tip from database to application format
+async function convertDbPlatinadorTipToPlatinadorTip(dbTip: DbPlatinadorTip, supabase: any): Promise<PlatinadorTip> {
+  try {
+    let author: Author | undefined
+    if (dbTip.author_id) {
+      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
+      if (authorData) {
+        author = {
+          id: authorData.id,
+          name: authorData.name,
+          avatar: authorData.avatar,
+          psnId: authorData.psn_id,
+          instagram: authorData.instagram,
+          twitter: authorData.twitter,
+          bio: authorData.bio,
+          user_id: authorData.user_id,
+          role: authorData.role,
+        }
+      }
+    }
+
+    // Fetch platinador media
+    let platinadorMedia: any[] = []
+    try {
+      const { data: mediaData } = await supabase
+        .from("platinador_media")
+        .select("*")
+        .eq("platinador_tip_id", dbTip.id)
+        .order("display_order", { ascending: true })
+
+      platinadorMedia =
+        mediaData?.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        })) || []
+    } catch (error) {
+      console.warn("Error fetching platinador media:", error)
+    }
+
+    return {
+      id: dbTip.id,
+      title: dbTip.title,
+      slug: dbTip.slug,
+      content: dbTip.content,
+      image: dbTip.image,
+      category: dbTip.category,
+      helpful_count: dbTip.helpful_count,
+      type: "platinador" as const, // Changed from "platinador-tip"
+      createdAt: dbTip.created_at,
+      updatedAt: dbTip.updated_at,
+      author,
+      author_id: dbTip.author_id,
+      platinadorMedia, // Added platinadorMedia to response
+    }
+  } catch (error) {
+    console.warn("Error converting platinador tip:", error)
+    return {
+      id: dbTip.id,
+      title: dbTip.title,
+      slug: dbTip.slug,
+      content: dbTip.content,
+      image: dbTip.image,
+      category: dbTip.category,
+      helpful_count: dbTip.helpful_count,
+      type: "platinador" as const,
+      createdAt: dbTip.created_at,
+      updatedAt: dbTip.updated_at,
+      author_id: dbTip.author_id,
+    }
+  }
+}
+
 export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
   console.log("Fetching platinador tips...")
+
+  const cached = getCachedData<PlatinadorTip[]>("platinador-tips")
+  if (cached) return cached
+
   const supabase = createSafeSupabaseClient()
 
   if (!supabase) {
-    console.log("Supabase not available, returning empty tips array")
+    console.log("Using mock data for platinador tips - Supabase not available")
     return []
   }
 
   try {
+    console.log("Attempting to fetch platinador tips from Supabase...")
+
     const dbTips = await retrySupabaseOperation(async () => {
       const { data, error } = await supabase
         .from("platinador_tips")
         .select("*")
         .order("created_at", { ascending: false })
+
       if (error) throw error
       return data
     }, "Fetch Platinador Tips")
@@ -1718,83 +1844,20 @@ export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
     console.log(`Found ${dbTips.length} platinador tips in database`)
 
     const tips = await Promise.all(
-      dbTips.map(async (dbTip: any) => {
+      dbTips.map(async (dbTip: DbPlatinadorTip) => {
         try {
-          let author: Author | undefined
-          if (dbTip.author_id) {
-            const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
-            if (authorData) {
-              author = {
-                id: authorData.id,
-                name: authorData.name,
-                avatar: authorData.avatar,
-                psnId: authorData.psn_id,
-                instagram: authorData.instagram,
-                twitter: authorData.twitter,
-                bio: authorData.bio,
-                user_id: authorData.user_id,
-                role: authorData.role,
-              }
-            }
-          }
-
-          // Fetch platinador media
-          let platinadorMedia: any[] = []
-          try {
-            const { data: mediaData } = await supabase
-              .from("platinador_media")
-              .select("*")
-              .eq("platinador_tip_id", dbTip.id)
-              .order("display_order", { ascending: true })
-
-            platinadorMedia =
-              mediaData?.map((media: any) => ({
-                id: media.id,
-                type: media.type,
-                url: media.url,
-                caption: media.caption,
-                display_order: media.display_order,
-              })) || []
-          } catch (error) {
-            console.warn("Error fetching platinador media:", error)
-          }
-
-          return {
-            id: dbTip.id,
-            title: dbTip.title,
-            slug: dbTip.slug,
-            content: dbTip.content,
-            image: dbTip.image,
-            category: dbTip.category,
-            helpful_count: dbTip.helpful_count,
-            type: "platinador" as const,
-            createdAt: dbTip.created_at,
-            updatedAt: dbTip.updated_at,
-            author,
-            author_id: dbTip.author_id,
-            platinadorMedia, // Added platinadorMedia to response
-          }
-        } catch (error) {
-          console.warn("Error converting platinador tip:", error)
-          return {
-            id: dbTip.id,
-            title: dbTip.title,
-            slug: dbTip.slug,
-            content: dbTip.content,
-            image: dbTip.image,
-            category: dbTip.category,
-            helpful_count: dbTip.helpful_count,
-            type: "platinador" as const,
-            createdAt: dbTip.created_at,
-            updatedAt: dbTip.updated_at,
-            author_id: dbTip.author_id,
-          }
+          return await convertDbPlatinadorTipToPlatinadorTip(dbTip, supabase)
+        } catch (conversionError) {
+          console.error("Error converting platinador tip:", conversionError)
+          return null
         }
       }),
     )
 
-    console.log("Successfully converted platinador tips")
-    return tips
+    const validTips = tips.filter((t): t is PlatinadorTip => t !== null)
+
+    setCachedData("platinador-tips", validTips)
+    return validTips
   } catch (error) {
     console.error("Supabase error fetching platinador tips:", error)
     return []
