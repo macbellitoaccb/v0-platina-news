@@ -67,7 +67,7 @@ export interface Post {
   slug: string
   content: string
   image: string
-  type: "review" | "news" | "guide" | "article" | "platinador-tip"
+  type: "review" | "news" | "guide" | "article" | "platinador" // Alterado de "platinador-tip" para "platinador"
   created_at: string
   updated_at: string
   author?: Author // Para exibição (populado na busca)
@@ -88,19 +88,41 @@ export interface Review extends Post {
 export interface News extends Post {
   type: "news"
   subtitle?: string // Adicionar subtítulo para notícias
-  additionalMedia?: NewsMedia[]
+  newsMedia?: NewsMedia[] // Renomeado de additionalMedia para newsMedia
 }
 
 export interface Article extends Post {
   type: "article"
   subtitle?: string
   category?: string
+  articleMedia?: ArticleMedia[] // Adicionado campo articleMedia
+}
+
+export interface ArticleMedia {
+  // Adicionado interface ArticleMedia
+  id?: string
+  article_id?: string
+  type: "image" | "video"
+  url: string
+  caption: string
+  display_order?: number
 }
 
 export interface PlatinadorTip extends Post {
-  type: "platinador-tip"
+  type: "platinador" // Alterado de "platinador-tip" para "platinador"
   category?: string
   helpful_count?: number
+  platinadorMedia?: PlatinadorMedia[] // Adicionado campo platinadorMedia
+}
+
+export interface PlatinadorMedia {
+  // Adicionado interface PlatinadorMedia
+  id?: string
+  platinador_tip_id?: string
+  type: "image" | "video"
+  url: string
+  caption: string
+  display_order?: number
 }
 
 export interface Guide extends Post {
