@@ -13,16 +13,18 @@ export default function EditarArtigoPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log("[v0] EditarArtigoPage: id from params:", id)
     if (id) {
       getArticleById(id as string).then((data) => {
+        console.log("[v0] EditarArtigoPage: article data received:", data)
         setArticle(data)
         setLoading(false)
       })
     }
   }, [id])
 
-  if (loading) return <div>Carregando...</div>
-  if (!article) return <div>Artigo não encontrado</div>
+  if (loading) return <div className="p-8">Carregando...</div>
+  if (!article) return <div className="p-8">Artigo não encontrado</div>
 
   return (
     <div className="space-y-6">

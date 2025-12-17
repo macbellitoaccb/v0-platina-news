@@ -1531,12 +1531,22 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 }
 
 export async function getArticleById(id: string): Promise<Article | null> {
+  console.log("[v0] getArticleById called with id:", id)
   const supabase = createSafeSupabaseClient()
-  if (!supabase) return null
+  if (!supabase) {
+    console.log("[v0] getArticleById: supabase client is null")
+    return null
+  }
 
   try {
     const { data: dbArticle, error } = await supabase.from("articles").select("*").eq("id", id).single()
-    if (error || !dbArticle) return null
+    console.log("[v0] getArticleById: dbArticle data:", dbArticle)
+    console.log("[v0] getArticleById: error:", error)
+
+    if (error || !dbArticle) {
+      console.log("[v0] getArticleById: returning null due to error or no data")
+      return null
+    }
 
     let author: Author | undefined
     if (dbArticle.author_id) {
@@ -1576,7 +1586,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
       console.warn("Error fetching article media:", error)
     }
 
-    return {
+    const result = {
       id: dbArticle.id,
       title: dbArticle.title,
       slug: dbArticle.slug,
@@ -1589,10 +1599,12 @@ export async function getArticleById(id: string): Promise<Article | null> {
       updatedAt: dbArticle.updated_at,
       author,
       author_id: dbArticle.author_id,
-      articleMedia, // Added articleMedia to response
+      articleMedia,
     }
+    console.log("[v0] getArticleById: returning result:", result)
+    return result
   } catch (error) {
-    console.error("Error fetching article by ID:", error)
+    console.error("[v0] getArticleById: Error fetching article by ID:", error)
     return null
   }
 }
@@ -1859,12 +1871,22 @@ export async function getPlatinadorTipBySlug(slug: string): Promise<PlatinadorTi
 }
 
 export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | null> {
+  console.log("[v0] getPlatinadorTipById called with id:", id)
   const supabase = createSafeSupabaseClient()
-  if (!supabase) return null
+  if (!supabase) {
+    console.log("[v0] getPlatinadorTipById: supabase client is null")
+    return null
+  }
 
   try {
     const { data: dbTip, error } = await supabase.from("platinador_tips").select("*").eq("id", id).single()
-    if (error || !dbTip) return null
+    console.log("[v0] getPlatinadorTipById: dbTip data:", dbTip)
+    console.log("[v0] getPlatinadorTipById: error:", error)
+
+    if (error || !dbTip) {
+      console.log("[v0] getPlatinadorTipById: returning null due to error or no data")
+      return null
+    }
 
     let author: Author | undefined
     if (dbTip.author_id) {
@@ -1904,7 +1926,7 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
       console.warn("Error fetching platinador media:", error)
     }
 
-    return {
+    const result = {
       id: dbTip.id,
       title: dbTip.title,
       slug: dbTip.slug,
@@ -1912,15 +1934,17 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
       image: dbTip.image,
       category: dbTip.category,
       helpful_count: dbTip.helpful_count,
-      type: "platinador" as const, // Changed from "platinador-tip"
+      type: "platinador" as const,
       createdAt: dbTip.created_at,
       updatedAt: dbTip.updated_at,
       author,
       author_id: dbTip.author_id,
-      platinadorMedia, // Added platinadorMedia to response
+      platinadorMedia,
     }
+    console.log("[v0] getPlatinadorTipById: returning result:", result)
+    return result
   } catch (error) {
-    console.error("Error fetching platinador tip by ID:", error)
+    console.error("[v0] getPlatinadorTipById: Error fetching platinador tip by ID:", error)
     return null
   }
 }
