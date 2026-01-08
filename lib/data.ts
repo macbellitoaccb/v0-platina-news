@@ -777,13 +777,23 @@ export async function getGuides(): Promise<Guide[]> {
 // Function to fetch all posts (reviews, news and guides)
 export async function getAllPosts(): Promise<AllPosts[]> {
   try {
-    const [reviews, news, guides, articles, platinadorTips] = await Promise.all([
-      getReviews().catch(() => []),
-      getNews().catch(() => []),
-      getGuides().catch(() => []),
-      getArticles().catch(() => []),
-      getPlatinadorTips().catch(() => []),
-    ])
+    console.log("[v0] getAllPosts: Starting sequential fetching...")
+
+    const reviews = await getReviews().catch(() => [])
+    await new Promise((resolve) => setTimeout(resolve, 300)) // Delay de 300ms
+
+    const news = await getNews().catch(() => [])
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const guides = await getGuides().catch(() => [])
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const articles = await getArticles().catch(() => [])
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const platinadorTips = await getPlatinadorTips().catch(() => [])
+
+    console.log("[v0] getAllPosts: Finished fetching all content types")
 
     return [...reviews, ...news, ...guides, ...articles, ...platinadorTips].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
