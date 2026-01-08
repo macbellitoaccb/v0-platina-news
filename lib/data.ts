@@ -1769,7 +1769,37 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
         console.warn("platinador_media table may not exist yet:", error)
       }
 
-      return transformDbPlatinadorTip({ ...tip, media: platinadorMedia })
+      // Start of changes for getPlatinadorTipById
+      return {
+        id: tip.id,
+        title: tip.title,
+        slug: tip.slug,
+        subtitle: tip.subtitle, // Adicionado subtitle
+        content: tip.content,
+        image: tip.image,
+        category: tip.category,
+        helpful_count: tip.helpful_count,
+        type: "platinador" as const,
+        createdAt: tip.created_at,
+        updatedAt: tip.updated_at,
+        author: tip.author
+          ? {
+              id: tip.author.id,
+              name: tip.author.name,
+              avatar: tip.author.avatar,
+              psnId: tip.author.psn_id,
+              instagram: tip.author.instagram,
+              twitter: tip.author.twitter,
+              bio: tip.author.bio,
+              user_id: tip.author.user_id,
+              role: tip.author.role,
+            }
+          : undefined,
+        author_id: tip.author_id,
+        youtubeUrl: tip.youtube_url, // Adicionado youtube_url
+        platinadorMedia,
+      }
+      // End of changes for getPlatinadorTipById
     },
     "Get Platinador Tip By ID",
     { maxRetries: 2 }, // Apenas 2 tentativas total para getById
@@ -2076,16 +2106,20 @@ export async function savePlatinadorTip(tip: PlatinadorTip): Promise<void> {
       authorId = await getOrCreateDefaultAuthor()
     }
 
+    // Start of changes for savePlatinadorTip
     const dbTip = {
       title: tip.title,
       slug: tip.slug,
+      subtitle: tip.subtitle, // Adicionado subtitle
       content: tip.content,
       image: tip.image,
       category: tip.category,
       helpful_count: tip.helpful_count || 0,
       author_id: authorId,
+      youtube_url: tip.youtubeUrl, // Adicionado youtube_url
       updated_at: new Date().toISOString(),
     }
+    // End of changes for savePlatinadorTip
 
     if (tip.id) {
       console.log("[v0] Updating platinador tip with id:", tip.id)

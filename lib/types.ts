@@ -242,4 +242,5 @@ export interface DbPlatinadorTip {
   author_id?: string
   helpful_count?: number
   subtitle?: string // Adicionado subtitle para compatibilidade com News
+  youtube_url?: string // Adicionado youtube_url ao tipo do banco
 }
