@@ -8,9 +8,9 @@ interface RetryOptions {
 }
 
 const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
-  maxRetries: 3,
-  initialDelay: 1000, // 1 second
-  maxDelay: 10000, // 10 seconds
+  maxRetries: 0, // Reduzido de 3 para 0 (apenas 1 tentativa)
+  initialDelay: 500, // Reduzido de 1000ms para 500ms
+  maxDelay: 5000, // Reduzido de 10000ms para 5000ms
   backoffMultiplier: 2,
 }
 

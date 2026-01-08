@@ -1505,6 +1505,45 @@ export async function getArticles(): Promise<Article[]> {
   }
 }
 
+// Helper to transform DB article structure to application structure
+function transformDbArticle(article: any): Article {
+  return {
+    id: article.id,
+    title: article.title,
+    slug: article.slug,
+    subtitle: article.subtitle,
+    content: article.content,
+    image: article.image,
+    category: article.category,
+    type: "article" as const,
+    createdAt: article.created_at,
+    updatedAt: article.updated_at,
+    author: article.author
+      ? {
+          id: article.author.id,
+          name: article.author.name,
+          avatar: article.author.avatar,
+          psnId: article.author.psn_id,
+          instagram: article.author.instagram,
+          twitter: article.author.twitter,
+          bio: article.author.bio,
+          user_id: article.author.user_id,
+          role: article.author.role,
+        }
+      : undefined,
+    author_id: article.author_id,
+    articleMedia: article.media
+      ? article.media.map((media: any) => ({
+          id: media.id,
+          type: media.type,
+          url: media.url,
+          caption: media.caption,
+          display_order: media.display_order,
+        }))
+      : [],
+  }
+}
+
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   const supabase = createSafeSupabaseClient()
   if (!supabase) return null
@@ -1576,81 +1615,113 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 
 export async function getArticleById(id: string): Promise<Article | null> {
   console.log("[v0] getArticleById called with id:", id)
-  const supabase = createSafeSupabaseClient()
-  if (!supabase) {
-    console.log("[v0] getArticleById: supabase client is null")
-    return null
-  }
 
-  try {
-    const { data: dbArticle, error } = await supabase.from("articles").select("*").eq("id", id).single()
-    console.log("[v0] getArticleById: dbArticle data:", dbArticle)
-    console.log("[v0] getArticleById: error:", error)
-
-    if (error || !dbArticle) {
-      console.log("[v0] getArticleById: returning null due to error or no data")
-      return null
-    }
-
-    let author: Author | undefined
-    if (dbArticle.author_id) {
-      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbArticle.author_id).single()
-      if (authorData) {
-        author = {
-          id: authorData.id,
-          name: authorData.name,
-          avatar: authorData.avatar,
-          psnId: authorData.psn_id,
-          instagram: authorData.instagram,
-          twitter: authorData.twitter,
-          bio: authorData.bio,
-          user_id: authorData.user_id,
-          role: authorData.role,
-        }
+  return retrySupabaseOperation(
+    async () => {
+      const supabase = createSafeSupabaseClient()
+      if (!supabase) {
+        console.warn("Supabase not available, cannot fetch article by id")
+        return null
       }
-    }
 
-    let articleMedia: any[] = []
-    try {
-      const { data: mediaData } = await supabase
-        .from("article_media")
-        .select("*")
-        .eq("article_id", id)
-        .order("display_order", { ascending: true })
+      const { data: article, error } = await supabase
+        .from("articles")
+        .select(
+          `
+          *,
+          author:authors(*),
+          media:article_media(*)
+        `,
+        )
+        .eq("id", id)
+        .single()
 
-      articleMedia =
-        mediaData?.map((media: any) => ({
+      if (error) {
+        console.error("[v0] Error fetching article by id:", error)
+        throw error
+      }
+
+      console.log("[v0] Article fetched successfully:", article)
+      return transformDbArticle(article)
+    },
+    "Get Article By ID",
+    { maxRetries: 1 }, // Apenas 2 tentativas total para getById
+  )
+}
+
+// Helper to transform DB platinador tip structure to application structure
+function transformDbPlatinadorTip(tip: any): PlatinadorTip {
+  return {
+    id: tip.id,
+    title: tip.title,
+    slug: tip.slug,
+    content: tip.content,
+    image: tip.image,
+    category: tip.category,
+    helpful_count: tip.helpful_count,
+    type: "platinador" as const, // Changed from "platinador-tip"
+    createdAt: tip.created_at,
+    updatedAt: tip.updated_at,
+    author: tip.author
+      ? {
+          id: tip.author.id,
+          name: tip.author.name,
+          avatar: tip.author.avatar,
+          psnId: tip.author.psn_id,
+          instagram: tip.author.instagram,
+          twitter: tip.author.twitter,
+          bio: tip.author.bio,
+          user_id: tip.author.user_id,
+          role: tip.author.role,
+        }
+      : undefined,
+    author_id: tip.author_id,
+    platinadorMedia: tip.media
+      ? tip.media.map((media: any) => ({
           id: media.id,
           type: media.type,
           url: media.url,
           caption: media.caption,
           display_order: media.display_order,
-        })) || []
-    } catch (error) {
-      console.warn("Error fetching article media:", error)
-    }
-
-    const result = {
-      id: dbArticle.id,
-      title: dbArticle.title,
-      slug: dbArticle.slug,
-      subtitle: dbArticle.subtitle,
-      content: dbArticle.content,
-      image: dbArticle.image,
-      category: dbArticle.category,
-      type: "article" as const,
-      createdAt: dbArticle.created_at,
-      updatedAt: dbArticle.updated_at,
-      author,
-      author_id: dbArticle.author_id,
-      articleMedia,
-    }
-    console.log("[v0] getArticleById: returning result:", result)
-    return result
-  } catch (error) {
-    console.error("[v0] getArticleById: Error fetching article by ID:", error)
-    return null
+        }))
+      : [],
   }
+}
+
+export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | null> {
+  console.log("[v0] getPlatinadorTipById called with id:", id)
+
+  return retrySupabaseOperation(
+    async () => {
+      const supabase = createSafeSupabaseClient()
+      if (!supabase) {
+        console.warn("Supabase not available, cannot fetch platinador tip by id")
+        return null
+      }
+
+      const { data: tip, error } = await supabase
+        .from("platinador_tips")
+        .select(
+          `
+          *,
+          author:authors(*),
+          media:platinador_media(*)
+        `,
+        )
+        .eq("id", id)
+        .single()
+
+      if (error) {
+        console.error("[v0] Error fetching platinador tip by id:", error)
+        throw error
+      }
+
+      console.log("[v0] Platinador tip fetched successfully:", tip)
+      return transformDbPlatinadorTip(tip)
+    },
+    "Get Platinador Tip By ID",
+    { maxRetries: 1 }, // Apenas 2 tentativas total para getById
+  )
 }
 
 export async function saveArticle(article: Article): Promise<void> {
@@ -1929,85 +2000,6 @@ export async function getPlatinadorTipBySlug(slug: string): Promise<PlatinadorTi
     }
   } catch (error) {
     console.error("Error fetching platinador tip by slug:", error)
-    return null
-  }
-}
-
-export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | null> {
-  console.log("[v0] getPlatinadorTipById called with id:", id)
-  const supabase = createSafeSupabaseClient()
-  if (!supabase) {
-    console.log("[v0] getPlatinadorTipById: supabase client is null")
-    return null
-  }
-
-  try {
-    const { data: dbTip, error } = await supabase.from("platinador_tips").select("*").eq("id", id).single()
-    console.log("[v0] getPlatinadorTipById: dbTip data:", dbTip)
-    console.log("[v0] getPlatinadorTipById: error:", error)
-
-    if (error || !dbTip) {
-      console.log("[v0] getPlatinadorTipById: returning null due to error or no data")
-      return null
-    }
-
-    let author: Author | undefined
-    if (dbTip.author_id) {
-      const { data: authorData } = await supabase.from("authors").select("*").eq("id", dbTip.author_id).single()
-      if (authorData) {
-        author = {
-          id: authorData.id,
-          name: authorData.name,
-          avatar: authorData.avatar,
-          psnId: authorData.psn_id,
-          instagram: authorData.instagram,
-          twitter: authorData.twitter,
-          bio: authorData.bio,
-          user_id: authorData.user_id,
-          role: authorData.role,
-        }
-      }
-    }
-
-    let platinadorMedia: any[] = []
-    try {
-      const { data: mediaData } = await supabase
-        .from("platinador_media")
-        .select("*")
-        .eq("platinador_tip_id", id)
-        .order("display_order", { ascending: true })
-
-      platinadorMedia =
-        mediaData?.map((media: any) => ({
-          id: media.id,
-          type: media.type,
-          url: media.url,
-          caption: media.caption,
-          display_order: media.display_order,
-        })) || []
-    } catch (error) {
-      console.warn("Error fetching platinador media:", error)
-    }
-
-    const result = {
-      id: dbTip.id,
-      title: dbTip.title,
-      slug: dbTip.slug,
-      content: dbTip.content,
-      image: dbTip.image,
-      category: dbTip.category,
-      helpful_count: dbTip.helpful_count,
-      type: "platinador" as const,
-      createdAt: dbTip.created_at,
-      updatedAt: dbTip.updated_at,
-      author,
-      author_id: dbTip.author_id,
-      platinadorMedia,
-    }
-    console.log("[v0] getPlatinadorTipById: returning result:", result)
-    return result
-  } catch (error) {
-    console.error("[v0] getPlatinadorTipById: Error fetching platinador tip by ID:", error)
     return null
   }
 }
