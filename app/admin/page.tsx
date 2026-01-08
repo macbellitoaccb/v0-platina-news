@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getAllPosts } from "@/lib/data"
 import { formatDate } from "@/lib/utils"
-import { PlusCircle, Users } from "lucide-react" // Importe o ícone Users
+import { PlusCircle, Users } from "lucide-react"
 
 export default async function AdminPage() {
   const posts = await getAllPosts()
@@ -28,12 +28,6 @@ export default async function AdminPage() {
             <Button variant="secondary">
               <PlusCircle className="mr-2 h-4 w-4" />
               Novo Guia
-            </Button>
-          </Link>
-          <Link href="/admin/novo/artigo">
-            <Button variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Artigo
             </Button>
           </Link>
           <Link href="/admin/novo/platinador">

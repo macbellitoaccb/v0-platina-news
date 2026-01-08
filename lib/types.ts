@@ -67,7 +67,7 @@ export interface Post {
   slug: string
   content: string
   image: string
-  type: "review" | "news" | "guide" | "article" | "platinador" // Alterado de "platinador-tip" para "platinador"
+  type: "review" | "news" | "guide" | "platinador" // Alterado de "platinador-tip" para "platinador"
   created_at: string
   updated_at: string
   author?: Author // Para exibição (populado na busca)
@@ -112,6 +112,7 @@ export interface PlatinadorTip extends Post {
   type: "platinador" // Alterado de "platinador-tip" para "platinador"
   category?: string
   helpful_count?: number
+  subtitle?: string // Adicionado subtitle para compatibilidade com News
   platinadorMedia?: PlatinadorMedia[] // Adicionado campo platinadorMedia
 }
 
@@ -134,7 +135,7 @@ export interface Guide extends Post {
   tags: string[]
 }
 
-export type AllPosts = Review | News | Guide | Article | PlatinadorTip
+export type AllPosts = Review | News | Guide | PlatinadorTip
 
 // Interfaces para dados do Supabase
 export interface DbReview {
@@ -240,4 +241,5 @@ export interface DbPlatinadorTip {
   updated_at: string
   author_id?: string
   helpful_count?: number
+  subtitle?: string // Adicionado subtitle para compatibilidade com News
 }

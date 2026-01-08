@@ -53,12 +53,6 @@ export default function Header() {
               Guias
             </Link>
             <Link
-              href="/artigos"
-              className="text-sm font-medium uppercase tracking-wide transition-colors hover:text-primary"
-            >
-              Artigos
-            </Link>
-            <Link
               href="/canto-do-platinador"
               className="text-sm font-medium uppercase tracking-wide transition-colors hover:text-primary"
             >
@@ -101,13 +95,6 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Guias
-              </Link>
-              <Link
-                href="/artigos"
-                className="text-sm font-medium transition-colors hover:text-primary"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Artigos
               </Link>
               <Link
                 href="/canto-do-platinador"

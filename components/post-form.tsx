@@ -36,7 +36,6 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
   const router = useRouter()
   const isReview = type === "review"
   const isNews = type === "news"
-  const isArticle = type === "article"
   const isPlatinador = type === "platinador"
   const isEditing = !!initialData
 
@@ -57,7 +56,9 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
     (initialData as Review)?.additionalImages || [],
   )
 
-  const [newsMedia, setNewsMedia] = useState<NewsMedia[]>((initialData as News)?.additionalMedia || [])
+  const [newsMedia, setNewsMedia] = useState<NewsMedia[]>(
+    isPlatinador ? (initialData as any)?.platinadorMedia || [] : (initialData as News)?.additionalMedia || [],
+  )
 
   const [platinaGuide, setPlatinaGuide] = useState<PlatinaGuide>(
     (initialData as Review)?.platinaGuide || { ...defaultPlatinaGuide },
@@ -140,7 +141,14 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           additionalImages: additionalImages.filter((img) => img.url.trim() !== ""),
           platinaGuide: platinaGuide.tips ? platinaGuide : undefined,
         }
+      } else if (isPlatinador) {
+        data = {
+          ...baseData,
+          subtitle: formData.subtitle,
+          platinadorMedia: newsMedia.filter((media) => media.url.trim() !== ""),
+        }
       } else {
+        // News
         data = {
           ...baseData,
           subtitle: formData.subtitle,
@@ -166,7 +174,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           className={`grid w-full ${
             isReview
               ? "grid-cols-2 md:grid-cols-4"
-              : (isNews || isArticle || isPlatinador)
+              : (isNews || isPlatinador)
                 ? "grid-cols-2 md:grid-cols-3"
                 : "grid-cols-2"
           }`}
@@ -175,7 +183,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           <TabsTrigger value="author">Autor</TabsTrigger>
           {isReview && <TabsTrigger value="images">Imagens Adicionais</TabsTrigger>}
           {isReview && <TabsTrigger value="platina">Guia de Platina</TabsTrigger>}
-          {(isNews || isArticle || isPlatinador) && <TabsTrigger value="media">Imagens e Vídeos</TabsTrigger>}
+          {(isNews || isPlatinador) && <TabsTrigger value="media">Imagens e Vídeos</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 pt-4">
@@ -185,7 +193,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
               <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
             </div>
 
-            {(isNews || isArticle || isPlatinador) && (
+            {(isNews || isPlatinador) && (
               <div className="space-y-2">
                 <Label htmlFor="subtitle">Subtítulo</Label>
                 <Input
@@ -361,7 +369,7 @@ export default function PostForm({ type, initialData, onSubmit }: PostFormProps)
           </TabsContent>
         )}
 
-        {(isNews || isArticle || isPlatinador) && (
+        {(isNews || isPlatinador) && (
           <TabsContent value="media" className="pt-4">
             <Card>
               <CardHeader>
