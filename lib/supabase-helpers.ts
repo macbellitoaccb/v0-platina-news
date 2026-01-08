@@ -8,14 +8,30 @@ interface RetryOptions {
 }
 
 const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
-  maxRetries: 0, // Reduzido de 3 para 0 (apenas 1 tentativa)
-  initialDelay: 500, // Reduzido de 1000ms para 500ms
-  maxDelay: 5000, // Reduzido de 10000ms para 5000ms
+  maxRetries: 2, // 3 tentativas total
+  initialDelay: 2000, // Aumentado de 500ms para 2000ms
+  maxDelay: 10000, // Aumentado de 5000ms para 10000ms
   backoffMultiplier: 2,
 }
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 1000 // Mínimo de 1 segundo entre requisições
+
+async function waitForRateLimit(): Promise<void> {
+  const now = Date.now()
+  const timeSinceLastRequest = now - lastRequestTime
+
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+    const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
+    console.log(`[v0] Rate limiting: waiting ${waitTime}ms before next request`)
+    await sleep(waitTime)
+  }
+
+  lastRequestTime = Date.now()
 }
 
 export async function retrySupabaseOperation<T>(
@@ -29,6 +45,8 @@ export async function retrySupabaseOperation<T>(
 
   for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
     try {
+      await waitForRateLimit()
+
       console.log(`[v0] ${operationName} - Attempt ${attempt + 1}/${opts.maxRetries + 1}`)
       const result = await operation()
 
@@ -56,7 +74,7 @@ export async function retrySupabaseOperation<T>(
         errorMessage.includes("is not valid JSON") ||
         errorMessage.includes("JSON")
 
-      // If it's the last attempt or not a retryable error, throw
+      // If it's the last attempt, throw
       if (attempt === opts.maxRetries) {
         console.error(`[v0] ${operationName} - All ${opts.maxRetries + 1} attempts failed`)
         throw error
@@ -68,9 +86,9 @@ export async function retrySupabaseOperation<T>(
         throw error
       }
 
-      // Wait before retrying with exponential backoff
-      console.log(`[v0] ${operationName} - Waiting ${delay}ms before retry...`)
-      await sleep(delay)
+      const rateLimitDelay = isRateLimitError ? delay * 2 : delay
+      console.log(`[v0] ${operationName} - Waiting ${rateLimitDelay}ms before retry...`)
+      await sleep(rateLimitDelay)
 
       // Increase delay for next attempt
       delay = Math.min(delay * opts.backoffMultiplier, opts.maxDelay)

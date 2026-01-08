@@ -1629,8 +1629,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
         .select(
           `
           *,
-          author:authors(*),
-          media:article_media(*)
+          author:authors(*)
         `,
         )
         .eq("id", id)
@@ -1642,10 +1641,32 @@ export async function getArticleById(id: string): Promise<Article | null> {
       }
 
       console.log("[v0] Article fetched successfully:", article)
-      return transformDbArticle(article)
+
+      let articleMedia: any[] = []
+      try {
+        const { data: mediaData } = await supabase
+          .from("article_media")
+          .select("*")
+          .eq("article_id", id)
+          .order("display_order", { ascending: true })
+
+        if (mediaData) {
+          articleMedia = mediaData.map((media: any) => ({
+            id: media.id,
+            type: media.type,
+            url: media.url,
+            caption: media.caption,
+            display_order: media.display_order,
+          }))
+        }
+      } catch (error) {
+        console.warn("article_media table may not exist yet:", error)
+      }
+
+      return transformDbArticle({ ...article, media: articleMedia })
     },
     "Get Article By ID",
-    { maxRetries: 1 }, // Apenas 2 tentativas total para getById
+    { maxRetries: 2 }, // Apenas 2 tentativas total para getById
   )
 }
 
@@ -1704,8 +1725,7 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
         .select(
           `
           *,
-          author:authors(*),
-          media:platinador_media(*)
+          author:authors(*)
         `,
         )
         .eq("id", id)
@@ -1717,10 +1737,32 @@ export async function getPlatinadorTipById(id: string): Promise<PlatinadorTip | 
       }
 
       console.log("[v0] Platinador tip fetched successfully:", tip)
-      return transformDbPlatinadorTip(tip)
+
+      let platinadorMedia: any[] = []
+      try {
+        const { data: mediaData } = await supabase
+          .from("platinador_media")
+          .select("*")
+          .eq("platinador_tip_id", id)
+          .order("display_order", { ascending: true })
+
+        if (mediaData) {
+          platinadorMedia = mediaData.map((media: any) => ({
+            id: media.id,
+            type: media.type,
+            url: media.url,
+            caption: media.caption,
+            display_order: media.display_order,
+          }))
+        }
+      } catch (error) {
+        console.warn("platinador_media table may not exist yet:", error)
+      }
+
+      return transformDbPlatinadorTip({ ...tip, media: platinadorMedia })
     },
     "Get Platinador Tip By ID",
-    { maxRetries: 1 }, // Apenas 2 tentativas total para getById
+    { maxRetries: 2 }, // Apenas 2 tentativas total para getById
   )
 }
 
@@ -1749,11 +1791,13 @@ export async function saveArticle(article: Article): Promise<void> {
     }
 
     if (article.id) {
+      console.log("[v0] Updating article with id:", article.id)
       const { error } = await supabase.from("articles").update(dbArticle).eq("id", article.id)
       if (error) {
         console.error("Error updating article:", error)
         throw error
       }
+      console.log("[v0] Article updated successfully")
     } else {
       const newId = uuidv4()
       const { data, error } = await supabase
@@ -1763,29 +1807,34 @@ export async function saveArticle(article: Article): Promise<void> {
         .single()
       if (error) {
         console.error("Error creating article:", error)
-        return
+        throw error
       }
       article.id = data.id
+      console.log("[v0] Article created with id:", article.id)
     }
 
     if (article.articleMedia && article.articleMedia.length > 0) {
-      await supabase.from("article_media").delete().eq("article_id", article.id)
+      try {
+        await supabase.from("article_media").delete().eq("article_id", article.id)
 
-      for (let i = 0; i < article.articleMedia.length; i++) {
-        const media = article.articleMedia[i]
-        await supabase.from("article_media").insert({
-          article_id: article.id,
-          type: media.type,
-          url: media.url,
-          caption: media.caption,
-          display_order: i,
-        })
+        for (let i = 0; i < article.articleMedia.length; i++) {
+          const media = article.articleMedia[i]
+          await supabase.from("article_media").insert({
+            article_id: article.id,
+            type: media.type,
+            url: media.url,
+            caption: media.caption,
+            display_order: i,
+          })
+        }
+        console.log("[v0] Article media saved successfully")
+      } catch (error) {
+        console.warn("Could not save article_media (table may not exist yet):", error)
       }
     }
-    console.log("Article saved successfully")
   } catch (error) {
     console.error("Error saving article:", error)
-    throw error
+    throw new Error("Erro ao salvar artigo. Tente novamente.")
   }
 }
 
@@ -2029,11 +2078,13 @@ export async function savePlatinadorTip(tip: PlatinadorTip): Promise<void> {
     }
 
     if (tip.id) {
+      console.log("[v0] Updating platinador tip with id:", tip.id)
       const { error } = await supabase.from("platinador_tips").update(dbTip).eq("id", tip.id)
       if (error) {
         console.error("Error updating platinador tip:", error)
         throw error
       }
+      console.log("[v0] Platinador tip updated successfully")
     } else {
       const newId = uuidv4()
       const { data, error } = await supabase
@@ -2043,29 +2094,34 @@ export async function savePlatinadorTip(tip: PlatinadorTip): Promise<void> {
         .single()
       if (error) {
         console.error("Error creating platinador tip:", error)
-        return
+        throw error
       }
       tip.id = data.id
+      console.log("[v0] Platinador tip created with id:", tip.id)
     }
 
     if (tip.platinadorMedia && tip.platinadorMedia.length > 0) {
-      await supabase.from("platinador_media").delete().eq("platinador_tip_id", tip.id)
+      try {
+        await supabase.from("platinador_media").delete().eq("platinador_tip_id", tip.id)
 
-      for (let i = 0; i < tip.platinadorMedia.length; i++) {
-        const media = tip.platinadorMedia[i]
-        await supabase.from("platinador_media").insert({
-          platinador_tip_id: tip.id,
-          type: media.type,
-          url: media.url,
-          caption: media.caption,
-          display_order: i,
-        })
+        for (let i = 0; i < tip.platinadorMedia.length; i++) {
+          const media = tip.platinadorMedia[i]
+          await supabase.from("platinador_media").insert({
+            platinador_tip_id: tip.id,
+            type: media.type,
+            url: media.url,
+            caption: media.caption,
+            display_order: i,
+          })
+        }
+        console.log("[v0] Platinador media saved successfully")
+      } catch (error) {
+        console.warn("Could not save platinador_media (table may not exist yet):", error)
       }
     }
-    console.log("Platinador tip saved successfully")
   } catch (error) {
     console.error("Error saving platinador tip:", error)
-    throw error
+    throw new Error("Erro ao salvar dica do platinador. Tente novamente.")
   }
 }
 
