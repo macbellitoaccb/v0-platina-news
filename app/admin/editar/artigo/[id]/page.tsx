@@ -1,30 +1,68 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import PostForm from "@/components/post-form"
 import { updateArticle } from "@/app/actions"
-import { getArticleById } from "@/lib/data"
+import { notFound } from "next/navigation"
 import type { Article } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import { AlertCircle } from "lucide-react"
+import Link from "next/link"
 
-export default function EditarArtigoPage() {
-  const { id } = useParams()
+interface EditArticlePageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EditArticlePage({ params }: EditArticlePageProps) {
   const [article, setArticle] = useState<Article | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log("[v0] EditarArtigoPage: id from params:", id)
-    if (id) {
-      getArticleById(id as string).then((data) => {
-        console.log("[v0] EditarArtigoPage: article data received:", data)
-        setArticle(data)
-        setLoading(false)
-      })
-    }
-  }, [id])
+    async function fetchArticle() {
+      try {
+        const response = await fetch(`/api/articles/${params.id}`)
 
-  if (loading) return <div className="p-8">Carregando...</div>
-  if (!article) return <div className="p-8">Artigo não encontrado</div>
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || `Erro ${response.status}`)
+        }
+
+        const data = await response.json()
+        setArticle(data)
+      } catch (error) {
+        console.error("Erro ao buscar artigo:", error)
+        setError(error instanceof Error ? error.message : "Erro desconhecido")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchArticle()
+  }, [params.id])
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-[50vh]">Carregando...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Erro ao carregar artigo</h2>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <Link href="/admin">
+          <Button>Voltar para o painel</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  if (!article) {
+    notFound()
+  }
 
   return (
     <div className="space-y-6">

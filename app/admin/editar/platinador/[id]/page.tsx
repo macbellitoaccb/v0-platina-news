@@ -1,30 +1,68 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import PostForm from "@/components/post-form"
 import { updatePlatinadorTip } from "@/app/actions"
-import { getPlatinadorTipById } from "@/lib/data"
+import { notFound } from "next/navigation"
 import type { PlatinadorTip } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import { AlertCircle } from "lucide-react"
+import Link from "next/link"
 
-export default function EditarPlatinadorPage() {
-  const { id } = useParams()
+interface EditPlatinadorPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EditPlatinadorPage({ params }: EditPlatinadorPageProps) {
   const [tip, setTip] = useState<PlatinadorTip | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log("[v0] EditarPlatinadorPage: id from params:", id)
-    if (id) {
-      getPlatinadorTipById(id as string).then((data) => {
-        console.log("[v0] EditarPlatinadorPage: tip data received:", data)
-        setTip(data)
-        setLoading(false)
-      })
-    }
-  }, [id])
+    async function fetchTip() {
+      try {
+        const response = await fetch(`/api/platinador/${params.id}`)
 
-  if (loading) return <div className="p-8">Carregando...</div>
-  if (!tip) return <div className="p-8">Dica não encontrada</div>
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || `Erro ${response.status}`)
+        }
+
+        const data = await response.json()
+        setTip(data)
+      } catch (error) {
+        console.error("Erro ao buscar dica:", error)
+        setError(error instanceof Error ? error.message : "Erro desconhecido")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTip()
+  }, [params.id])
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-[50vh]">Carregando...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Erro ao carregar dica</h2>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <Link href="/admin">
+          <Button>Voltar para o painel</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  if (!tip) {
+    notFound()
+  }
 
   return (
     <div className="space-y-6">
