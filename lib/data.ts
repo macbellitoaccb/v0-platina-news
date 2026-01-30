@@ -724,27 +724,25 @@ export async function getNews(): Promise<News[]> {
 
 // Function to fetch all guides
 export async function getGuides(): Promise<Guide[]> {
-  console.log("Fetching guides...")
-
   const cached = getCachedData<Guide[]>("guides")
-  if (cached) return cached
+  if (cached) {
+    console.log("[v0] Using cached data for guides")
+    return cached
+  }
 
   const supabase = createSafeSupabaseClient()
 
   if (!supabase) {
-    console.log("Using mock data for guides - Supabase not available")
     return [sampleGuide]
   }
 
   try {
-    console.log("Attempting to fetch guides from Supabase...")
+    const { data: dbGuides, error } = await supabase
+      .from("guides")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const dbGuides = await retrySupabaseOperation(async () => {
-      const { data, error } = await supabase.from("guides").select("*").order("created_at", { ascending: false })
-
-      if (error) throw error
-      return data
-    }, "Fetch Guides")
+    if (error) throw error
 
     if (!dbGuides || dbGuides.length === 0) {
       console.log("No guides found in database, using mock data")
@@ -1965,37 +1963,29 @@ async function convertDbPlatinadorTipToPlatinadorTip(dbTip: DbPlatinadorTip, sup
 }
 
 export async function getPlatinadorTips(): Promise<PlatinadorTip[]> {
-  console.log("Fetching platinador tips...")
-
   const cached = getCachedData<PlatinadorTip[]>("platinador-tips")
-  if (cached) return cached
+  if (cached) {
+    console.log("[v0] Using cached data for platinador-tips")
+    return cached
+  }
 
   const supabase = createSafeSupabaseClient()
 
   if (!supabase) {
-    console.log("Using mock data for platinador tips - Supabase not available")
     return []
   }
 
   try {
-    console.log("Attempting to fetch platinador tips from Supabase...")
+    const { data: dbTips, error } = await supabase
+      .from("platinador_tips")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const dbTips = await retrySupabaseOperation(async () => {
-      const { data, error } = await supabase
-        .from("platinador_tips")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (error) throw error
-      return data
-    }, "Fetch Platinador Tips")
+    if (error) throw error
 
     if (!dbTips || dbTips.length === 0) {
-      console.log("No platinador tips found in database")
       return []
     }
-
-    console.log(`Found ${dbTips.length} platinador tips in database`)
 
     const tips = await Promise.all(
       dbTips.map(async (dbTip: DbPlatinadorTip) => {
