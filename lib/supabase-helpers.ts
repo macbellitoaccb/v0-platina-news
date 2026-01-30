@@ -8,9 +8,9 @@ interface RetryOptions {
 }
 
 const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
-  maxRetries: 2, // 3 tentativas total
-  initialDelay: 2000, // Aumentado de 500ms para 2000ms
-  maxDelay: 10000, // Aumentado de 5000ms para 10000ms
+  maxRetries: 1, // Apenas 2 tentativas (reduzido de 3)
+  initialDelay: 1000, // Reduzido para 1 segundo
+  maxDelay: 5000,
   backoffMultiplier: 2,
 }
 
@@ -19,7 +19,7 @@ async function sleep(ms: number): Promise<void> {
 }
 
 let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 1000 // Mínimo de 1 segundo entre requisições
+const MIN_REQUEST_INTERVAL = 500 // Reduzido para 500ms entre requisições
 
 async function waitForRateLimit(): Promise<void> {
   const now = Date.now()
@@ -27,11 +27,24 @@ async function waitForRateLimit(): Promise<void> {
 
   if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
-    console.log(`[v0] Rate limiting: waiting ${waitTime}ms before next request`)
     await sleep(waitTime)
   }
 
   lastRequestTime = Date.now()
+}
+
+// Função que tenta uma operação e retorna null em caso de falha (sem exceção)
+export async function trySupabaseOperation<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+): Promise<T | null> {
+  try {
+    await waitForRateLimit()
+    return await operation()
+  } catch (error: any) {
+    console.error(`[v0] ${operationName} failed:`, error?.message || String(error))
+    return null
+  }
 }
 
 export async function retrySupabaseOperation<T>(
@@ -47,50 +60,31 @@ export async function retrySupabaseOperation<T>(
     try {
       await waitForRateLimit()
 
-      console.log(`[v0] ${operationName} - Attempt ${attempt + 1}/${opts.maxRetries + 1}`)
       const result = await operation()
-
-      if (attempt > 0) {
-        console.log(`[v0] ${operationName} - Success after ${attempt + 1} attempts`)
-      }
-
       return result
     } catch (error: any) {
       lastError = error
       const errorMessage = error?.message || String(error)
 
-      console.error(`[v0] ${operationName} - Attempt ${attempt + 1} failed:`, errorMessage)
-
-      // Check if it's a rate limiting error
-      const isRateLimitError =
+      // Check if it's a retryable error
+      const isRetryable =
         errorMessage.includes("Too Many Requests") ||
         errorMessage.includes("Too Many R") ||
         errorMessage.includes("429") ||
-        errorMessage.includes("rate limit")
-
-      // Check if it's a JSON parse error (often caused by rate limiting)
-      const isJsonError =
+        errorMessage.includes("rate limit") ||
         errorMessage.includes("Unexpected token") ||
         errorMessage.includes("is not valid JSON") ||
-        errorMessage.includes("JSON")
+        errorMessage.includes("521") ||
+        errorMessage.includes("Web server is down") ||
+        errorMessage.includes("fetch failed") ||
+        errorMessage.includes("ECONNREFUSED")
 
-      // If it's the last attempt, throw
-      if (attempt === opts.maxRetries) {
-        console.error(`[v0] ${operationName} - All ${opts.maxRetries + 1} attempts failed`)
+      // If it's the last attempt or not retryable, throw
+      if (attempt === opts.maxRetries || !isRetryable) {
         throw error
       }
 
-      // Only retry on rate limiting or network errors
-      if (!isRateLimitError && !isJsonError) {
-        console.error(`[v0] ${operationName} - Non-retryable error, throwing immediately`)
-        throw error
-      }
-
-      const rateLimitDelay = isRateLimitError ? delay * 2 : delay
-      console.log(`[v0] ${operationName} - Waiting ${rateLimitDelay}ms before retry...`)
-      await sleep(rateLimitDelay)
-
-      // Increase delay for next attempt
+      await sleep(delay)
       delay = Math.min(delay * opts.backoffMultiplier, opts.maxDelay)
     }
   }
